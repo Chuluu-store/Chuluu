@@ -31,8 +31,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-stone-600/20 bg-stone-800/70 backdrop-blur-xl shadow-lg">
       <div className="safe-top">
-        <div className="px-6 sm:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="px-8">
+          <div className="flex items-center justify-between h-20">
             {/* 로고 섹션 */}
             <Link href="/" className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-stone-700 flex items-center justify-center shadow-md">
@@ -41,8 +41,8 @@ export function Header() {
               <h1 className="text-xl font-semibold text-white">Chuluu</h1>
             </Link>
 
-            {/* 데스크톱 액션 바 */}
-            <div className="hidden lg:flex items-center">
+            {/* 액션 바 */}
+            <div className="flex items-center">
               {isLoggedIn && (
                 <div className="relative">
                   <button
@@ -72,9 +72,9 @@ export function Header() {
               )}
             </div>
 
-            {/* 모바일 메뉴 버튼 */}
+            {/* 메뉴 버튼 */}
             <button
-              className="lg:hidden p-3 rounded-xl hover:bg-stone-700/50 transition-all"
+              className="p-3 rounded-xl hover:bg-stone-700/50 transition-all"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? (
@@ -85,7 +85,7 @@ export function Header() {
             </button>
           </div>
 
-          {/* 모바일 메뉴 */}
+          {/* 드롭다운 메뉴 */}
           <AnimatePresence>
             {isMenuOpen && (
               <motion.div
@@ -93,9 +93,9 @@ export function Header() {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
-                className="lg:hidden overflow-hidden"
+                className="overflow-hidden"
               >
-                <div className="py-6 space-y-3 border-t border-stone-600/20 mt-4">
+                <div className="py-8 space-y-4 border-t border-stone-600/20 mt-6">
                   {isLoggedIn ? (
                     <>
                       <div className="px-6 py-2 text-sm text-stone-300 font-medium">

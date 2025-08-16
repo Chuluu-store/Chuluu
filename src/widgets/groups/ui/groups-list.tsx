@@ -13,21 +13,21 @@ interface GroupsListProps {
 
 export function GroupsList({ groups, onCreateGroup, onGroupClick }: GroupsListProps) {
   return (
-    <div className="space-y-8 sm:space-y-12">
+    <div className="space-y-12">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl sm:text-2xl font-semibold text-white">
+        <h2 className="text-2xl font-semibold text-white">
           내 그룹 ({groups.length})
         </h2>
         <button
           onClick={onCreateGroup}
-          className="text-sm sm:text-base text-stone-400 hover:text-white transition-colors flex items-center space-x-1 sm:space-x-2"
+          className="text-base text-stone-400 hover:text-white transition-colors flex items-center space-x-2"
         >
-          <Plus className="w-4 sm:w-5 h-4 sm:h-5" />
+          <Plus className="w-5 h-5" />
           <span>새 그룹</span>
         </button>
       </div>
       
-      <div className="grid gap-6 sm:gap-8">
+      <div className="grid gap-8">
         <CreateGroupCard onClick={onCreateGroup} />
         {groups.map((group) => (
           <GroupCard 

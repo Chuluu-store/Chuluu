@@ -34,99 +34,84 @@ interface NavigationProps {
 }
 
 export function Navigation({ currentPage, onNavigate }: NavigationProps) {
+  console.log('Navigation currentPage:', currentPage);
 
   return (
-    <>
-      {/* 모바일 네비게이션 */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:hidden">
-        <div className="safe-bottom pointer-events-auto">
-          <div className="px-4 pb-6">
-            <div className="w-full bg-stone-800/90 backdrop-blur-xl border border-stone-700/50 rounded-2xl p-3 shadow-2xl">
-              <div className="relative grid grid-cols-2 gap-2">
-                {/* 슬라이딩 배경 */}
-                <motion.div
-                  layoutId="activeTabMobile"
-                  className="absolute top-0 bottom-0 bg-stone-600 rounded-xl"
-                  initial={false}
-                  animate={{
-                    x: currentPage === 'groups' ? 'calc(100% + 8px)' : '0%'
+    <div 
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 50,
+        pointerEvents: 'none'
+      }}
+    >
+      <div className="safe-bottom" style={{ pointerEvents: 'auto' }}>
+        <div style={{ paddingBottom: '20px' }}>
+          <div 
+            style={{
+              width: '320px',
+              background: 'rgba(41, 37, 36, 0.9)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(120, 113, 108, 0.5)',
+              borderRadius: '24px',
+              padding: '12px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+            }}
+          >
+            <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+              {/* 슬라이딩 배경 */}
+              <motion.div
+                layoutId="activeTab"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  background: 'rgba(87, 83, 78, 1)',
+                  borderRadius: '14px',
+                  width: 'calc(50% - 3px)'
+                }}
+                initial={false}
+                animate={{
+                  x: currentPage === 'groups' ? 'calc(100% + 6px)' : '0%'
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30
+                }}
+              />
+              
+              {navItems.map((item) => (
+                <motion.button 
+                  key={item.id}
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => onNavigate(item.id)}
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    padding: '12px 0',
+                    borderRadius: '14px',
+                    transition: 'all 0.2s',
+                    zIndex: 10,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: currentPage === item.id ? '#ffffff' : '#a8a29e'
                   }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30
-                  }}
-                  style={{ width: 'calc(50% - 4px)' }}
-                />
-                
-                {navItems.map((item) => (
-                  <motion.button 
-                    key={item.id}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => onNavigate(item.id)}
-                    className={`
-                      relative flex flex-col items-center py-4 rounded-xl transition-colors duration-200 z-10
-                      ${currentPage === item.id 
-                        ? 'text-white' 
-                        : 'text-stone-400 hover:text-stone-300'
-                      }
-                    `}
-                  >
-                    <item.icon className="w-6 h-6 mb-1" />
-                    <span className="text-xs font-medium">{item.label}</span>
-                  </motion.button>
-                ))}
-              </div>
+                >
+                  <item.icon className="w-5 h-5 mb-1" />
+                  <span style={{ fontSize: '11px', fontWeight: '500' }}>{item.label}</span>
+                </motion.button>
+              ))}
             </div>
           </div>
         </div>
       </div>
-
-      {/* 데스크탑 네비게이션 */}
-      <div className="hidden md:block fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
-        <div className="safe-bottom pointer-events-auto">
-          <div className="px-6 pb-6">
-            <div className="max-w-md mx-auto bg-stone-800/90 backdrop-blur-xl border border-stone-700/50 rounded-2xl p-3 shadow-2xl">
-              <div className="relative grid grid-cols-2 gap-2">
-                {/* 슬라이딩 배경 */}
-                <motion.div
-                  layoutId="activeTabDesktop"
-                  className="absolute top-0 bottom-0 bg-stone-600 rounded-xl"
-                  initial={false}
-                  animate={{
-                    x: currentPage === 'groups' ? 'calc(100% + 8px)' : '0%'
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30
-                  }}
-                  style={{ width: 'calc(50% - 4px)' }}
-                />
-                
-                {navItems.map((item) => (
-                  <motion.button 
-                    key={item.id}
-                    whileTap={{ scale: 0.95 }}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => onNavigate(item.id)}
-                    className={`
-                      relative flex flex-col items-center py-4 rounded-xl transition-colors duration-200 z-10
-                      ${currentPage === item.id 
-                        ? 'text-white' 
-                        : 'text-stone-400 hover:text-stone-300'
-                      }
-                    `}
-                  >
-                    <item.icon className="w-6 h-6 mb-1" />
-                    <span className="text-xs font-medium">{item.label}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }

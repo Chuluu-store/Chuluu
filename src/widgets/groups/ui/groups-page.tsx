@@ -10,30 +10,29 @@ import { GroupsList } from "@/widgets/groups/ui/groups-list";
 import { EmptyGroupsState } from "@/widgets/groups/ui/empty-groups-state";
 import { type Group } from "@/entities/group/model/types";
 
-
-
 export function GroupsPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [groupModal, setGroupModal] = useState<{isOpen: boolean, type: "create" | "join"}>({ 
-    isOpen: false, 
-    type: "create" 
+  const [groupModal, setGroupModal] = useState<{
+    isOpen: boolean;
+    type: "create" | "join";
+  }>({
+    isOpen: false,
+    type: "create",
   });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
-    
+
     if (token && user) {
       setIsLoggedIn(true);
       // TODO: 실제 그룹 데이터 로드
       // fetchUserGroups();
-      
+
       // 임시 데이터
-      setGroups([
-        
-      ]);
+      setGroups([]);
     }
   }, []);
 
@@ -59,15 +58,15 @@ export function GroupsPage() {
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-stone-900">
-        <div className="px-6 py-12 pb-32">
+        <div className="px-8 py-16 pb-24">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="w-full max-w-2xl mx-auto space-y-12"
           >
-            <GroupsHero 
-              title="내 그룹" 
-              subtitle="로그인하여 그룹을 관리하세요" 
+            <GroupsHero
+              title="내 그룹"
+              subtitle="로그인하여 그룹을 관리하세요"
             />
 
             {showLogin ? (
@@ -83,16 +82,13 @@ export function GroupsPage() {
 
   return (
     <div className="min-h-screen bg-stone-900">
-      <div className="px-6 py-12 pb-32">
+      <div className="px-8 py-16 pb-24">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="w-full max-w-2xl mx-auto space-y-12"
         >
-          <GroupsHero 
-            title="내 그룹" 
-            subtitle="참여 중인 그룹을 관리하세요" 
-          />
+          <GroupsHero title="내 그룹" subtitle="참여 중인 그룹을 관리하세요" />
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -100,19 +96,19 @@ export function GroupsPage() {
             transition={{ delay: 0.3 }}
           >
             {groups.length === 0 ? (
-              <EmptyGroupsState 
+              <EmptyGroupsState
                 onCreateGroup={() => openGroupModal("create")}
                 onJoinGroup={() => openGroupModal("join")}
               />
             ) : (
-              <GroupsList 
+              <GroupsList
                 groups={groups}
                 onCreateGroup={() => openGroupModal("create")}
                 onGroupClick={handleGroupClick}
               />
             )}
 
-            <GroupModal 
+            <GroupModal
               isOpen={groupModal.isOpen}
               onClose={() => setGroupModal({ ...groupModal, isOpen: false })}
               type={groupModal.type}

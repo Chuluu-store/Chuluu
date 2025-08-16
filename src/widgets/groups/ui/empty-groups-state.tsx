@@ -9,19 +9,22 @@ interface EmptyGroupsStateProps {
   onJoinGroup: () => void;
 }
 
-export function EmptyGroupsState({ onCreateGroup, onJoinGroup }: EmptyGroupsStateProps) {
+export function EmptyGroupsState({
+  onCreateGroup,
+  onJoinGroup,
+}: EmptyGroupsStateProps) {
   return (
-    <div className="space-y-12">
-      <div className="bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-12 text-center">
-        <h2 className="text-3xl font-bold text-white mb-4">
+    <div className="max-w-4xl mx-auto space-y-16">
+      <div className="bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl px-16 py-20 text-center">
+        <p className="text-lg text-stone-400 mt-4">
           아직 참여한 그룹이 없습니다
-        </h2>
-        <p className="text-xl text-stone-300 leading-relaxed mb-8">
+        </p>
+        <p className="text-base text-stone-500 mt-2">
           새 그룹을 만들거나 초대 코드로 그룹에 참여해보세요
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-6">
         <motion.div
           whileHover={{ y: -4, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -42,7 +45,7 @@ export function EmptyGroupsState({ onCreateGroup, onJoinGroup }: EmptyGroupsStat
             </div>
           </div>
         </motion.div>
-        
+
         <motion.div
           whileHover={{ y: -4, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
