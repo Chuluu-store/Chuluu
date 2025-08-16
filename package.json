@@ -30,11 +30,11 @@
     "react-intersection-observer": "^9.16.0",
     "sharp": "^0.34.3",
     "typescript": "^5",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^20",
     "zustand": "^5.0.7"
   },
   "devDependencies": {
-    "@types/multer": "^2.0.0",
-    "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
