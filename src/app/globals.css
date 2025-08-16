@@ -1,0 +1,361 @@
+@import "tailwindcss";
+
+/* 2024 트렌디한 모던 디자인 시스템 */
+:root {
+  /* Safe Area */
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+  --safe-area-inset-left: env(safe-area-inset-left);
+  --safe-area-inset-right: env(safe-area-inset-right);
+  
+  /* 심플한 컬러 팔레트 */
+  --stone-primary: #0A0A0A;
+  --stone-secondary: #141414;
+  --stone-accent: #1F1F1F;
+  --stone-surface: #171717;
+  --stone-neutral: #6B7280;
+  --stone-cool: #64748B;
+  --stone-success: #10B981;
+  --stone-warning: #F59E0B;
+  --stone-error: #EF4444;
+  
+  /* 모던 그라디언트 */
+  --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-card: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  --gradient-accent: linear-gradient(135deg, #a78bfa 0%, #3b82f6 100%);
+  
+  /* 최신 Glass Effects */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-hover: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --glass-backdrop: blur(20px) saturate(180%);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(167, 139, 250, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, var(--stone-primary) 0%, var(--stone-secondary) 100%);
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+/* 트렌디한 Stone Texture */
+.stone-texture {
+  position: relative;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(167, 139, 250, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.02) 0%, transparent 50%),
+    linear-gradient(145deg, 
+      var(--stone-primary) 0%,
+      var(--stone-secondary) 50%,
+      var(--stone-accent) 100%
+    );
+}
+
+.stone-texture::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 15% 35%, rgba(255, 255, 255, 0.02) 1px, transparent 2px),
+    radial-gradient(circle at 85% 65%, rgba(255, 255, 255, 0.015) 1px, transparent 2px),
+    radial-gradient(circle at 45% 85%, rgba(255, 255, 255, 0.01) 1px, transparent 2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 심플 Glass Card */
+.glass-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  transition: all 0.2s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* 모던한 Glass Button */
+.glass-button {
+  position: relative;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-button:hover::before {
+  left: 100%;
+}
+
+.glass-button:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.glass-button:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Glass Surface */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* 트렌디한 Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, 
+    #ffffff 0%,
+    #e5e5e5 25%,
+    #f0f0f0 50%,
+    #d0d0d0 75%,
+    #ffffff 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 300% 300%;
+  animation: gradientShift 4s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* 모던한 Loading Shimmer */
+.loading-shimmer {
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerMove 2s infinite;
+}
+
+@keyframes shimmerMove {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Floating Action Button */
+.floating-action {
+  background: linear-gradient(135deg, 
+    rgba(167, 139, 250, 0.9) 0%,
+    rgba(59, 130, 246, 0.9) 100%
+  );
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 12px 32px rgba(167, 139, 250, 0.25),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-action:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 
+    0 20px 48px rgba(167, 139, 250, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Safe Area */
+.safe-top { padding-top: max(20px, env(safe-area-inset-top)); }
+.safe-bottom { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+.safe-left { padding-left: max(16px, env(safe-area-inset-left)); }
+.safe-right { padding-right: max(16px, env(safe-area-inset-right)); }
+
+/* 트렌디한 스크롤바 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, 
+    rgba(167, 139, 250, 0.3) 0%,
+    rgba(59, 130, 246, 0.3) 100%
+  );
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, 
+    rgba(167, 139, 250, 0.5) 0%,
+    rgba(59, 130, 246, 0.5) 100%
+  );
+}
+
+/* Selection */
+::selection {
+  background: rgba(167, 139, 250, 0.3);
+  color: white;
+}
+
+/* Focus States */
+*:focus-visible {
+  outline: none;
+  box-shadow: 
+    0 0 0 2px rgba(167, 139, 250, 0.5),
+    0 0 0 4px rgba(167, 139, 250, 0.2);
+}
+
+/* 트렌디한 애니메이션 */
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.float-animation {
+  animation: floatGentle 6s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(167, 139, 250, 0.1);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(167, 139, 250, 0.25);
+  }
+}
+
+.pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 모던한 Input 스타일 */
+input, textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(167, 139, 250, 0.5);
+}
+
+/* 반응형 Grid */
+.modern-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .modern-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Hide scrollbars on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 데스크톱 중앙 정렬 컨테이너 */
+.desktop-container {
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .desktop-container {
+    max-width: 430px;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    min-height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+  }
+}
