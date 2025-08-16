@@ -1,6 +1,21 @@
 server {
     server_name ${SERVER_HOST} www.${SERVER_HOST};
 
+    # Static files from .next/static
+    location /_next/static {
+        alias ${SERVER_PATH}/.next/static;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Public files
+    location /static {
+        alias ${SERVER_PATH}/public;
+        expires 1y;
+        add_header Cache-Control "public";
+    }
+
+    # All other requests to Next.js
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;

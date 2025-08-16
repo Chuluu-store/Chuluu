@@ -8,15 +8,6 @@ set -e  # 오류 발생시 즉시 종료
 # 환경 변수 로드
 if [ -f ".deploy.env" ]; then
     source .deploy.env
-else
-    echo "⚠️  .deploy.env 파일이 없습니다. 기본값을 사용합니다."
-    SERVER_USER="pi"
-    SERVER_HOST="chuluu.store"
-    SERVER_PORT="22"
-    SERVER_HOME="/home/pi"
-    SERVER_PATH="/home/pi/chuluu"
-    BUILD_PATH="/home/pi/bin/build"
-    PROJECT_NAME="chuluu"
 fi
 
 # 색상 설정

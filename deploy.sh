@@ -8,19 +8,6 @@ set -e  # 오류 발생시 즉시 종료
 # 환경 변수 로드
 if [ -f ".deploy.env" ]; then
     source .deploy.env
-else
-    echo "⚠️  .deploy.env 파일이 없습니다. 기본값을 사용합니다."
-    SERVER_USER="pi"
-    SERVER_HOST="chuluu.store"
-    SERVER_PORT="22"
-    SERVER_HOME="/home/pi"
-    SERVER_PATH="/home/pi/chuluu"
-    BUILD_PATH="/home/pi/bin/build"
-    NGINX_SITES_PATH="/etc/nginx/sites-available"
-    SSL_CERT_PATH="/etc/letsencrypt/live"
-    PROJECT_NAME="chuluu"
-    REPO_URL="https://github.com/kscold/Chuluu.git"
-    GIT_BRANCH="main"
 fi
 
 # 색상 설정
@@ -167,7 +154,7 @@ echo -e "${YELLOW}🔄 Nginx 설정 업데이트 중...${NC}"
 # Nginx 설정 파일 생성 (템플릿에서)
 if [ -f "$SERVER_PATH/nginx.conf.template" ]; then
     # 템플릿 파일에서 변수 치환하여 실제 설정 파일 생성
-    envsubst '$SERVER_HOST $SSL_CERT_PATH' < $SERVER_PATH/nginx.conf.template > /tmp/nginx_$PROJECT_NAME.conf
+    envsubst '$SERVER_HOST $SSL_CERT_PATH $SERVER_PATH' < $SERVER_PATH/nginx.conf.template > /tmp/nginx_$PROJECT_NAME.conf
     sudo cp /tmp/nginx_$PROJECT_NAME.conf $NGINX_SITES_PATH/$SERVER_HOST
     sudo systemctl reload nginx
     rm -f /tmp/nginx_$PROJECT_NAME.conf
