@@ -42,4 +42,10 @@ next-env.d.ts
 
 CLAUDE.md
 .env*
+.deploy.env
 public/uploads/
+
+# 배포 관련 민감한 파일들
+nginx.conf
+*.nginx.conf
+deploy_script.sh

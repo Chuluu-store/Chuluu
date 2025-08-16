@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/shared/lib/database";
 import { MediaModel } from "@/entities/media/model/schema";
 
+
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
