@@ -21,10 +21,6 @@ server {
 }
 
 server {
-    if ($host = ${SERVER_HOST}) {
-        return 301 https://$host$request_uri;
-    }
-
     listen 80;
     server_name ${SERVER_HOST} www.${SERVER_HOST};
     return 301 https://$host$request_uri;
