@@ -8,12 +8,15 @@ import { LoginPrompt } from "@/features/auth/ui/login-prompt";
 import { GroupsHero } from "@/widgets/groups/ui/groups-hero";
 import { GroupsList } from "@/widgets/groups/ui/groups-list";
 import { EmptyGroupsState } from "@/widgets/groups/ui/empty-groups-state";
+import { GroupDetailPage } from "@/widgets/groups/ui/group-detail-page";
 import { type Group } from "@/entities/group/model/types";
 
 export function GroupsPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [groupModal, setGroupModal] = useState<{
     isOpen: boolean;
     type: "create" | "join";
@@ -28,13 +31,32 @@ export function GroupsPage() {
 
     if (token && user) {
       setIsLoggedIn(true);
-      // TODO: 실제 그룹 데이터 로드
-      // fetchUserGroups();
-
-      // 임시 데이터
-      setGroups([]);
+      fetchUserGroups();
     }
   }, []);
+
+  const fetchUserGroups = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch('/api/groups', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGroups(data.groups || []);
+      }
+    } catch (error) {
+      console.error('그룹 로드 오류:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLoginSuccess = () => {
     setShowLogin(false);
@@ -52,17 +74,31 @@ export function GroupsPage() {
 
   const handleGroupClick = (group: Group) => {
     console.log("그룹 선택:", group);
-    // TODO: 그룹 상세 페이지로 이동
+    setSelectedGroup(group);
   };
+
+  const handleBackToList = () => {
+    setSelectedGroup(null);
+  };
+
+  // 그룹 상세 페이지 표시
+  if (selectedGroup) {
+    return (
+      <GroupDetailPage
+        group={selectedGroup}
+        onBack={handleBackToList}
+      />
+    );
+  }
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-stone-900">
+      <div className="w-full max-w-md mx-auto">
         <div className="px-8 py-16 pb-24">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="w-full max-w-2xl mx-auto space-y-12"
+            className="space-y-12"
           >
             <GroupsHero
               title="내 그룹"
@@ -81,12 +117,12 @@ export function GroupsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-900">
+    <div className="w-full max-w-md mx-auto">
       <div className="px-8 py-16 pb-24">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="w-full max-w-2xl mx-auto space-y-12"
+          className="space-y-12"
         >
           <GroupsHero title="내 그룹" subtitle="참여 중인 그룹을 관리하세요" />
 

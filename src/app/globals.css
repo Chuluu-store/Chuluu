@@ -309,15 +309,28 @@ body {
 
 /* 모던한 Input 스타일 */
 input, textarea {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  transition: all 0.2s ease;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 input:focus, textarea:focus {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(167, 139, 250, 0.5);
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+/* 입력 필드 자동완성 스타일링 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: white !important;
+  background-clip: text !important;
 }
 
 /* 반응형 Grid */

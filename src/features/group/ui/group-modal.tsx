@@ -246,10 +246,16 @@ export function GroupModal({ isOpen, onClose, type }: GroupModalProps) {
                       </div>
                     </div>
 
-                    <div className="pt-2">
+                    <div className="pt-2 flex gap-3">
+                      <button
+                        onClick={() => window.location.href = `/group/${createdGroup?.id}`}
+                        className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm font-medium text-white transition-all duration-200"
+                      >
+                        그룹으로 이동
+                      </button>
                       <button
                         onClick={() => window.location.reload()}
-                        className="w-full py-3 bg-stone-700 hover:bg-stone-600 rounded-xl text-sm font-medium text-white transition-all duration-200"
+                        className="flex-1 py-3 bg-stone-700 hover:bg-stone-600 rounded-xl text-sm font-medium text-white transition-all duration-200"
                       >
                         확인
                       </button>

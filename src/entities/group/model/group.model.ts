@@ -25,7 +25,6 @@ const GroupSchema = new Schema<IGroup>({
   },
   inviteCode: {
     type: String,
-    required: true,
     unique: true,
     uppercase: true
   },
@@ -47,15 +46,49 @@ const GroupSchema = new Schema<IGroup>({
 });
 
 // 초대 코드 생성 함수
-GroupSchema.pre('save', async function(next) {
-  if (!this.inviteCode) {
-    // 6자리 랜덤 코드 생성
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-      code += characters.charAt(Math.floor(Math.random() * characters.length));
+function generateInviteCode(): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return code;
+}
+
+
+// 고유한 초대 코드 생성 함수
+async function generateUniqueInviteCode(): Promise<string> {
+  const Group = mongoose.models.Group;
+  let code = '';
+  let isUnique = false;
+  let attempts = 0;
+  const maxAttempts = 10;
+  
+  while (!isUnique && attempts < maxAttempts) {
+    code = generateInviteCode();
+    
+    if (Group) {
+      const existingGroup = await Group.findOne({ inviteCode: code });
+      if (!existingGroup) {
+        isUnique = true;
+      }
+    } else {
+      isUnique = true; // 첫 번째 그룹인 경우
     }
-    this.inviteCode = code;
+    attempts++;
+  }
+  
+  if (!isUnique) {
+    // 최대 시도 횟수를 초과했을 때는 타임스탬프 추가
+    code = generateInviteCode() + Date.now().toString().slice(-2);
+  }
+  
+  return code;
+}
+
+GroupSchema.pre('save', async function(next) {
+  if (this.isNew && !this.inviteCode) {
+    this.inviteCode = await generateUniqueInviteCode();
   }
   next();
 });

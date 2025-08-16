@@ -47,27 +47,28 @@ const LoginPrompt = ({ onLogin }: { onLogin: () => void }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="relative bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-12 text-center overflow-hidden"
+    className="relative bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-10 text-center overflow-hidden"
   >
-    <div className="relative z-10 space-y-8">
-      <div className="w-20 h-20 mx-auto bg-stone-700 rounded-full flex items-center justify-center mb-6">
-        <LogInIcon className="w-10 h-10 text-stone-200" />
+    <div className="relative z-10 space-y-6">
+      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-stone-600 to-stone-700 rounded-2xl flex items-center justify-center shadow-lg">
+        <LogInIcon className="w-8 h-8 text-white" />
       </div>
 
-      <div>
-        <h2 className="text-3xl font-bold text-white mb-4">
-          로그인이 필요합니다
-        </h2>
-        <p className="text-xl text-stone-300 leading-relaxed max-w-md mx-auto">
-          사진을 공유하고 그룹을 관리하려면 로그인해주세요
+      <div className="space-y-3">
+        <h2 className="text-2xl font-bold text-white">로그인이 필요합니다</h2>
+        <p className="text-lg text-stone-300 leading-relaxed max-w-sm mx-auto">
+          <span className="text-stone-100 font-medium">Chuluu</span>에서 사진을
+          공유하고
+          <br className="hidden sm:block" />
+          추억을 함께 만들어보세요
         </p>
       </div>
 
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.02, y: -2 }}
+        whileTap={{ scale: 0.98 }}
         onClick={onLogin}
-        className="w-full max-w-sm mx-auto py-4 bg-stone-700 text-white rounded-2xl font-semibold hover:bg-stone-600 transition-all shadow-lg hover:shadow-xl text-lg"
+        className="w-full max-w-xs mx-auto py-3.5 bg-stone-600 text-white rounded-2xl font-semibold hover:bg-stone-500 transition-all shadow-lg hover:shadow-xl text-base border border-stone-500/50 hover:border-stone-400/50"
       >
         로그인 시작하기
       </motion.button>
@@ -77,6 +78,27 @@ const LoginPrompt = ({ onLogin }: { onLogin: () => void }) => (
 
 export function HomePage() {
   const [currentPage, setCurrentPage] = useState<"home" | "groups">("home");
+
+  useEffect(() => {
+    console.log("HomePage currentPage changed to:", currentPage);
+  }, [currentPage]);
+
+  const handleNavigate = (page: "home" | "groups") => {
+    console.log("Navigation clicked, changing from", currentPage, "to", page);
+
+    // 즉시 상태 업데이트
+    setCurrentPage(page);
+
+    // 강제 리렌더링을 위한 추가 처리
+    setTimeout(() => {
+      console.log("After state update, currentPage should be:", page);
+    }, 0);
+
+    // 스크롤을 맨 위로 이동 (선택사항)
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [groupModal, setGroupModal] = useState<{
@@ -112,12 +134,12 @@ export function HomePage() {
 
   // 홈 페이지 렌더링
   const renderHomePage = () => (
-    <div className="min-h-screen bg-stone-900">
+    <div className="w-full max-w-md mx-auto">
       <div className="px-8 py-16 pb-40">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="w-full max-w-2xl mx-auto space-y-12"
+          className="space-y-12"
         >
           {/* Hero Section */}
           <motion.div
@@ -132,18 +154,38 @@ export function HomePage() {
               <div className="w-16 h-1 bg-stone-500 mx-auto rounded-full"></div>
             </div>
 
-            <p className="text-xl text-stone-300 leading-relaxed max-w-xl mx-auto">
-              Chuluu는 몽골어로 돌탑이라는 뜻입니다. 당신의 추억을 마치 돌탑처럼
-              하나씩 친구들과 쌓아주세요
-            </p>
+            <div className="space-y-6">
+              <p className="text-xl text-stone-300 leading-relaxed max-w-xl mx-auto">
+                <span className="text-stone-100 font-medium">Chuluu(촐로)</span>
+                는 몽골어로 <span className="text-stone-200">돌탑</span>이라는
+                뜻입니다.
+                <br className="hidden sm:block" />
+                당신의 추억을 하나하나 마치 돌탑처럼
+                <br className="hidden sm:block" />
+                당신의 지인들과 쌓아주세요.
+              </p>
 
-            <p className="text-l text-stone-300 leading-relaxed max-w-xl mx-auto">
-              그룹으로 사진을 공유하고, 추억을 함께 만들어가세요.
-              <br />
-              <span className="text-stone-100 font-medium">원본 품질</span>로
-              <span className="text-stone-100 font-medium"> 무제한</span>{" "}
-              업로드가 가능합니다.
-            </p>
+              <div className="space-y-4">
+                <p className="text-lg text-stone-300 leading-relaxed max-w-xl mx-auto">
+                  Chuluu는 마치 원석처럼 원본 상태 그대로 있습니다.
+                  <br className="hidden sm:block" />
+                  마음대로 사진을 공유하고, 추억을 함께 만들어가세요.
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2 text-lg">
+                  <span className="px-3 py-1 bg-stone-700/50 border border-stone-600/50 rounded-full text-stone-100 font-medium">
+                    원본 품질
+                  </span>
+                  <span className="text-stone-300">•</span>
+                  <span className="px-3 py-1 bg-stone-700/50 border border-stone-600/50 rounded-full text-stone-100 font-medium">
+                    무제한 업로드
+                  </span>
+                  <span className="text-stone-300">•</span>
+                  <span className="px-3 py-1 bg-stone-700/50 border border-stone-600/50 rounded-full text-stone-100 font-medium">
+                    쉬운 공유
+                  </span>
+                </div>
+              </div>
+            </div>
           </motion.div>
 
           {/* 로그인 상태에 따른 컨텐츠 */}
@@ -165,7 +207,7 @@ export function HomePage() {
                   <p className="text-stone-400">원하는 작업을 선택해주세요</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <ActionCard
                     icon={Plus}
                     title="그룹 생성"
@@ -200,8 +242,8 @@ export function HomePage() {
   );
 
   return (
-    <div className="min-h-screen bg-stone-900 relative">
-      <div className="desktop-container">
+    <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md mx-auto relative">
         <Header />
 
         <main>
@@ -213,10 +255,10 @@ export function HomePage() {
           onClose={() => setGroupModal({ ...groupModal, isOpen: false })}
           type={groupModal.type}
         />
-      </div>
 
-      {/* 네비게이션을 최상위로 이동 */}
-      <Navigation onNavigate={setCurrentPage} currentPage={currentPage} />
+        {/* 네비게이션을 최상위로 이동 */}
+        <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
+      </div>
     </div>
   );
 }

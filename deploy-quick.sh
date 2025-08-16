@@ -115,16 +115,16 @@ pm2 start server.js --name $PROJECT_NAME
 pm2 save
 
 echo -e "${GREEN}✅ 빠른 배포 완료!${NC}"
-echo -e "${BLUE}🌐 https://chuluu.store 에서 확인하세요${NC}"
+echo -e "${BLUE}🌐 https://$SERVER_HOST 에서 확인하세요${NC}"
 ENDSSH
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}🎉 빠른 배포가 성공적으로 완료되었습니다!${NC}"
-    echo -e "${BLUE}🌐 https://chuluu.store${NC}"
+    echo -e "${BLUE}🌐 https://$SERVER_HOST${NC}"
     
     # 브라우저에서 자동으로 열기 (macOS)
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        open "https://chuluu.store"
+        open "https://$SERVER_HOST"
     fi
 else
     echo -e "${RED}❌ 배포 중 오류가 발생했습니다.${NC}"

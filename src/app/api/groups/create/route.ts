@@ -35,10 +35,38 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // 고유한 초대 코드 생성
+    const generateInviteCode = (): string => {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      for (let i = 0; i < 6; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      return code;
+    };
+
+    let inviteCode = '';
+    let isUnique = false;
+    let attempts = 0;
+    
+    while (!isUnique && attempts < 10) {
+      inviteCode = generateInviteCode();
+      const existingGroup = await Group.findOne({ inviteCode });
+      if (!existingGroup) {
+        isUnique = true;
+      }
+      attempts++;
+    }
+    
+    if (!isUnique) {
+      inviteCode = generateInviteCode() + Date.now().toString().slice(-2);
+    }
+
     // 그룹 생성
     const group = await Group.create({
       name,
       description,
+      inviteCode,
       owner: decoded.userId,
       members: [decoded.userId],
       media: []
