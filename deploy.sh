@@ -123,7 +123,7 @@ else
 fi
 
 echo -e "${YELLOW}📦 의존성 설치 중...${NC}"
-npm ci --only=production
+npm ci
 
 echo -e "${YELLOW}🏗️  프로덕션 빌드 중...${NC}"
 npm run build
@@ -134,7 +134,24 @@ echo -e "${YELLOW}🚚 Next.js 애플리케이션 배포 중...${NC}"
 pm2 stop $PROJECT_NAME 2>/dev/null || true
 pm2 delete $PROJECT_NAME 2>/dev/null || true
 
-# 환경변수 파일 복사
+# 환경변수 파일 생성 및 복사
+echo -e "${YELLOW}📝 환경변수 파일 설정 중...${NC}"
+
+# .env.production 파일 생성 (서버용 - 환경변수에서 가져옴)
+cat > \$SERVER_PATH/.env.production << EOF
+# MongoDB
+MONGODB_URI=\$MONGODB_URI
+
+# File Upload
+UPLOAD_PATH=\$UPLOAD_PATH
+MAX_FILE_SIZE=\$MAX_FILE_SIZE
+
+# App Configuration
+NODE_ENV=\$NODE_ENV
+NEXT_PUBLIC_APP_URL=https://\$SERVER_HOST
+EOF
+
+# standalone 디렉토리로 환경변수 파일 복사
 if [ -f "$SERVER_PATH/.env.local" ]; then
     cp $SERVER_PATH/.env.local $SERVER_PATH/.next/standalone/
 fi
@@ -171,7 +188,7 @@ if [ -n "$SERVER_PASSWORD" ]; then
 else
     scp -o StrictHostKeyChecking=no /tmp/deploy_script.sh $SERVER_USER@$SERVER_HOST:/tmp/
 fi
-$SSH_CMD "chmod +x /tmp/deploy_script.sh && /tmp/deploy_script.sh '$SERVER_PATH' '$SERVER_HOME' '$PROJECT_NAME' '$REPO_URL' '$GIT_BRANCH' '$NGINX_SITES_PATH' '$SSL_CERT_PATH' '$SERVER_HOST'"
+$SSH_CMD "chmod +x /tmp/deploy_script.sh && MONGODB_URI='$MONGODB_URI' UPLOAD_PATH='$UPLOAD_PATH' MAX_FILE_SIZE='$MAX_FILE_SIZE' NODE_ENV='$NODE_ENV' /tmp/deploy_script.sh '$SERVER_PATH' '$SERVER_HOME' '$PROJECT_NAME' '$REPO_URL' '$GIT_BRANCH' '$NGINX_SITES_PATH' '$SSL_CERT_PATH' '$SERVER_HOST'"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}🎉 배포가 성공적으로 완료되었습니다!${NC}"

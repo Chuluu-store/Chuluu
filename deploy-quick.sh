@@ -17,7 +17,6 @@ else
     SERVER_PATH="/home/pi/chuluu"
     BUILD_PATH="/home/pi/bin/build"
     PROJECT_NAME="chuluu"
-    REPO_URL="https://github.com/kscold/Chuluu.git"
 fi
 
 # 색상 설정
@@ -56,10 +55,10 @@ fi
 # SSH 자동 비밀번호 입력
 if [ -n "$SERVER_PASSWORD" ]; then
     echo -e "${BLUE}🔐 자동 비밀번호 인증으로 서버 접속 중...${NC}"
-    sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no -p $SERVER_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+    sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no -p $SERVER_PORT $SERVER_USER@$SERVER_HOST << ENDSSH
 else
     echo -e "${BLUE}🔑 SSH 키 인증으로 서버 접속 중...${NC}"
-    ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+    ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST << ENDSSH
 fi
 set -e
 
@@ -82,7 +81,7 @@ mv $SERVER_HOME/$PROJECT_NAME-temp $SERVER_PATH
 cd $SERVER_PATH
 
 echo -e "${YELLOW}📦 의존성 설치 중...${NC}"
-npm ci --only=production
+npm ci
 
 echo -e "${YELLOW}🏗️  프로덕션 빌드 중...${NC}"
 npm run build
@@ -93,7 +92,24 @@ echo -e "${YELLOW}🚚 Next.js 애플리케이션 배포 중...${NC}"
 pm2 stop $PROJECT_NAME 2>/dev/null || true
 pm2 delete $PROJECT_NAME 2>/dev/null || true
 
-# 환경변수 파일 복사
+# 환경변수 파일 생성 및 복사
+echo -e "${YELLOW}📝 환경변수 파일 설정 중...${NC}"
+
+# .env.production 파일 생성 (서버용 - 환경변수에서 가져옴)
+cat > $SERVER_PATH/.env.production << EOF
+# MongoDB
+MONGODB_URI=$MONGODB_URI
+
+# File Upload
+UPLOAD_PATH=$UPLOAD_PATH
+MAX_FILE_SIZE=$MAX_FILE_SIZE
+
+# App Configuration
+NODE_ENV=$NODE_ENV
+NEXT_PUBLIC_APP_URL=https://$SERVER_HOST
+EOF
+
+# standalone 디렉토리로 환경변수 파일 복사
 if [ -f "$SERVER_PATH/.env.local" ]; then
     cp $SERVER_PATH/.env.local $SERVER_PATH/.next/standalone/
 fi
