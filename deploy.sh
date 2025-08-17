@@ -113,7 +113,34 @@ echo -e "${YELLOW}📦 의존성 설치 중...${NC}"
 # 기존 node_modules 제거 (의존성 충돌 방지)
 rm -rf node_modules package-lock.json
 npm install --production=false
-# 프로덕션 빌드를 위해 모든 의존성 설치 필요
+
+echo -e "${YELLOW}🔡 Google Fonts 다운로드 중...${NC}"
+# Inter 폰트 다운로드
+mkdir -p public/fonts
+cd public/fonts
+
+# Inter Regular
+if [ ! -f "Inter-Regular.woff2" ]; then
+  curl -o "Inter-Regular.woff2" "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2"
+fi
+
+# Inter Medium
+if [ ! -f "Inter-Medium.woff2" ]; then
+  curl -o "Inter-Medium.woff2" "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2"
+fi
+
+# Inter SemiBold
+if [ ! -f "Inter-SemiBold.woff2" ]; then
+  curl -o "Inter-SemiBold.woff2" "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuDyfAZ9hiA.woff2"
+fi
+
+# Inter Bold
+if [ ! -f "Inter-Bold.woff2" ]; then
+  curl -o "Inter-Bold.woff2" "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKfAZ9hiA.woff2"
+fi
+
+cd ../..
+echo -e "${GREEN}✅ Google Fonts 다운로드 완료${NC}"
 
 echo -e "${YELLOW}🏗️  프로덕션 빌드 중...${NC}"
 npm run build
@@ -128,7 +155,7 @@ pm2 delete $PROJECT_NAME 2>/dev/null || true
 echo -e "${YELLOW}📝 환경변수 파일 설정 중...${NC}"
 
 # .env.production 파일 생성 (서버용 - 환경변수에서 가져옴)
-cat > \$SERVER_PATH/.env.production << EOF
+cat > .env.production << EOF
 # MongoDB
 MONGODB_URI=\$MONGODB_URI
 
@@ -142,16 +169,32 @@ NEXT_PUBLIC_APP_URL=https://\$SERVER_HOST
 EOF
 
 # standalone 디렉토리로 환경변수 파일 복사
-if [ -f "$SERVER_PATH/.env.local" ]; then
-    cp $SERVER_PATH/.env.local $SERVER_PATH/.next/standalone/
+if [ -f ".env.local" ]; then
+    cp .env.local .next/standalone/
 fi
-if [ -f "$SERVER_PATH/.env.production" ]; then
-    cp $SERVER_PATH/.env.production $SERVER_PATH/.next/standalone/
+if [ -f ".env.production" ]; then
+    cp .env.production .next/standalone/
 fi
 
 # PM2로 Next.js 서버 시작 (포트 3000)
-cd $SERVER_PATH/.next/standalone
+cd .next/standalone
 pm2 start server.js --name $PROJECT_NAME
+
+# PM2 상태 확인
+echo -e "${YELLOW}🔍 PM2 상태 확인 중...${NC}"
+pm2 status $PROJECT_NAME
+
+# 몇 초 대기 후 앱 시작 확인
+echo -e "${YELLOW}⏳ 애플리케이션 시작 대기 중...${NC}"
+sleep 5
+
+# 포트 3000에서 실행 중인지 확인
+if curl -f http://localhost:3000 > /dev/null 2>&1; then
+    echo -e "${GREEN}✅ 애플리케이션이 정상적으로 시작되었습니다!${NC}"
+else
+    echo -e "${RED}❌ 애플리케이션 시작에 문제가 있습니다. PM2 로그를 확인하세요.${NC}"
+    pm2 logs $PROJECT_NAME --lines 10
+fi
 
 echo -e "${YELLOW}🔄 Nginx 설정 업데이트 중...${NC}"
 # Nginx 설정 파일 생성 (템플릿에서)
