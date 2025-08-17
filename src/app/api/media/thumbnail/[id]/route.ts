@@ -9,10 +9,12 @@ import sharp from 'sharp';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    
+    const params = await context.params;
     
     // 토큰 검증 (쿼리 파라미터에서도 허용)
     const token = request.headers.get('Authorization')?.replace('Bearer ', '') || 
@@ -80,7 +82,7 @@ export async function GET(
       thumbnailBuffer = await generateThumbnail(media.path, size);
     }
 
-    return new NextResponse(thumbnailBuffer, {
+    return new NextResponse(new Uint8Array(thumbnailBuffer), {
       headers: {
         'Content-Type': 'image/jpeg',
         'Cache-Control': 'public, max-age=31536000',

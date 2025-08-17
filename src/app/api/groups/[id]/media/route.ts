@@ -7,7 +7,7 @@ import { verifyToken } from '@/shared/lib/auth';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -29,6 +29,7 @@ export async function GET(
       );
     }
 
+    const params = await context.params;
     const groupId = params.id;
     const url = new URL(request.url);
     

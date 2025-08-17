@@ -9,10 +9,12 @@ import path from 'path';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    
+    const params = await context.params;
     
     // 토큰 검증
     const token = request.headers.get('Authorization')?.replace('Bearer ', '') || 
@@ -91,7 +93,7 @@ export async function GET(
     }
 
     // 일반 파일 응답
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       headers: {
         'Content-Type': media.mimeType,
         'Content-Length': fileStat.size.toString(),

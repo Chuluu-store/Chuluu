@@ -18,9 +18,7 @@ const nextConfig: NextConfig = {
     ],
   },
   // 파일 업로드를 위한 설정
-  experimental: {
-    serverComponentsExternalPackages: ['sharp', 'exifr'],
-  },
+  serverExternalPackages: ['sharp', 'exifr'],
   // API 라우트 설정
   async headers() {
     return [
