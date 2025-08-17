@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/widgets/header';
+import { Navigation } from '@/widgets/navigation';
 import { BulkUpload } from '@/features/upload/ui/bulk-upload';
 import { PhotoGallery } from '@/features/gallery/ui/photo-gallery';
 import { 
@@ -38,6 +39,7 @@ export default function GroupDetailPage() {
   const [showGallery, setShowGallery] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentPage, setCurrentPage] = useState<'home' | 'groups'>('groups');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -54,21 +56,25 @@ export default function GroupDetailPage() {
   const loadGroupData = async () => {
     try {
       setLoading(true);
-      // TODO: 실제 API 호출
-      // const response = await fetch(`/api/groups/${groupId}`);
-      // const groupData = await response.json();
-      
-      // 임시 데이터
-      setGroup({
-        id: groupId,
-        name: '몽골 여행 2024',
-        description: '몽골 여행에서 찍은 사진과 동영상을 공유하는 그룹입니다.',
-        inviteCode: 'MONGO24',
-        memberCount: 5,
-        mediaCount: 0,
-        createdAt: '2024-01-15',
-        isOwner: true
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      console.log('Loading group:', groupId);
+      const response = await fetch(`/api/groups/${groupId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Group API error:', errorData);
+        throw new Error(errorData.error || '그룹 정보를 불러올 수 없습니다');
+      }
+      
+      const data = await response.json();
+      console.log('Group data:', data);
+      setGroup(data.group);
     } catch (error) {
       console.error('그룹 로드 오류:', error);
     } finally {
@@ -76,16 +82,20 @@ export default function GroupDetailPage() {
     }
   };
 
-  const handleUploadComplete = (results: any) => {
+  const handleUploadComplete = async (results: any) => {
     console.log('업로드 완료:', results);
     setShowUpload(false);
-    // 그룹 데이터 새로고침
-    loadGroupData();
+    // 그룹 데이터 새로고침 - 약간의 지연 후 로드하여 DB 업데이트 확실히 하기
+    setTimeout(() => {
+      loadGroupData();
+    }, 500);
   };
 
   const handleBackToGroup = () => {
     setShowGallery(false);
     setShowUpload(false);
+    // 갤러리에서 돌아올 때 데이터 새로고침 (삭제 등이 있을 수 있음)
+    loadGroupData();
   };
 
   const copyInviteCode = () => {
@@ -96,12 +106,24 @@ export default function GroupDetailPage() {
     }
   };
 
+  const handleNavigate = (page: 'home' | 'groups') => {
+    if (page === 'home') {
+      router.push('/');
+    } else {
+      router.push('/');
+      // This will navigate to home which will then show groups page
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-stone-900">
-        <Header />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-white">로딩 중...</div>
+        <div className="w-full max-w-md mx-auto relative md:border-x md:border-stone-800 min-h-screen flex flex-col">
+          <Header />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-white">로딩 중...</div>
+          </div>
+          <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
         </div>
       </div>
     );
@@ -110,17 +132,20 @@ export default function GroupDetailPage() {
   if (!group) {
     return (
       <div className="min-h-screen bg-stone-900">
-        <Header />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center space-y-4">
-            <div className="text-white text-xl">그룹을 찾을 수 없습니다</div>
-            <button
-              onClick={() => router.push('/')}
-              className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-lg transition-colors"
-            >
-              홈으로 돌아가기
-            </button>
+        <div className="w-full max-w-md mx-auto relative md:border-x md:border-stone-800 min-h-screen flex flex-col">
+          <Header />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <div className="text-white text-xl">그룹을 찾을 수 없습니다</div>
+              <button
+                onClick={() => router.push('/')}
+                className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-lg transition-colors"
+              >
+                홈으로 돌아가기
+              </button>
+            </div>
           </div>
+          <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
         </div>
       </div>
     );
@@ -129,13 +154,16 @@ export default function GroupDetailPage() {
   if (showUpload) {
     return (
       <div className="min-h-screen bg-stone-900">
-        <Header />
-        <div className="p-8 pt-24">
-          <BulkUpload
-            groupId={groupId}
-            onUploadComplete={handleUploadComplete}
-            onClose={handleBackToGroup}
-          />
+        <div className="w-full max-w-md mx-auto relative md:border-x md:border-stone-800 min-h-screen flex flex-col">
+          <Header />
+          <div className="flex-1 py-8 pb-24 overflow-y-auto">
+            <BulkUpload
+              groupId={groupId}
+              onUploadComplete={handleUploadComplete}
+              onClose={handleBackToGroup}
+            />
+          </div>
+          <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
         </div>
       </div>
     );
@@ -144,12 +172,15 @@ export default function GroupDetailPage() {
   if (showGallery) {
     return (
       <div className="min-h-screen bg-stone-900">
-        <Header />
-        <div className="pt-20">
-          <PhotoGallery
-            groupId={groupId}
-            onBack={handleBackToGroup}
-          />
+        <div className="w-full max-w-md mx-auto relative md:border-x md:border-stone-800 min-h-screen flex flex-col">
+          <Header />
+          <div className="flex-1 py-8 pb-24 overflow-y-auto">
+            <PhotoGallery
+              groupId={groupId}
+              onBack={handleBackToGroup}
+            />
+          </div>
+          <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
         </div>
       </div>
     );
@@ -157,167 +188,171 @@ export default function GroupDetailPage() {
 
   return (
     <div className="min-h-screen bg-stone-900">
-      <Header />
-      
-      <div className="p-4 md:p-8 pt-24 max-w-4xl mx-auto">
-        {/* 뒤로가기 버튼 */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 mb-6 px-4 py-2 bg-stone-800/50 hover:bg-stone-700/50 border border-stone-600/50 text-stone-300 rounded-xl transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          뒤로가기
-        </button>
+      <div className="w-full max-w-md mx-auto relative md:border-x md:border-stone-800 min-h-screen flex flex-col">
+        <Header />
+        
+        {/* 메인 컨텐츠 */}
+        <div className="flex-1 px-8 py-16 pb-24 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-12"
+          >
+            {/* 뒤로가기 버튼 */}
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2 text-stone-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>뒤로가기</span>
+            </motion.button>
 
-        {/* 그룹 헤더 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-4 md:p-8 mb-6 md:mb-8"
-        >
-          <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 gap-4">
-            <div className="flex-grow">
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+            {/* 그룹 헤더 */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-center space-y-4"
+            >
+              <h1 className="text-4xl font-bold text-white">
                 {group.name}
               </h1>
               {group.description && (
-                <p className="text-stone-300 text-lg leading-relaxed mb-4">
+                <p className="text-stone-300 text-lg leading-relaxed">
                   {group.description}
                 </p>
               )}
               
-              <div className="flex flex-wrap items-center gap-3 md:gap-6 text-sm text-stone-400">
-                <div className="flex items-center gap-2">
+              {/* 통계 정보 */}
+              <div className="flex items-center justify-center gap-6 text-sm text-stone-400">
+                <div className="flex items-center gap-1.5">
                   <Users className="w-4 h-4" />
                   <span>{group.memberCount}명</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <span className="text-stone-600">•</span>
+                <div className="flex items-center gap-1.5">
                   <ImageIcon className="w-4 h-4" />
-                  <span>{group.mediaCount}개 미디어</span>
+                  <span>{group.mediaCount || 0}개 미디어</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <span className="text-stone-600">•</span>
+                <div className="flex items-center gap-1.5">
                   <Calendar className="w-4 h-4" />
-                  <span>{new Date(group.createdAt).toLocaleDateString()}</span>
+                  <span>{new Date(group.createdAt).toLocaleDateString('ko-KR')}</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* 액션 버튼들 */}
-            <div className="flex flex-wrap items-center gap-2 md:gap-3">
-              <button
-                onClick={copyInviteCode}
-                className="flex items-center gap-2 px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors"
-              >
-                <Share2 className="w-4 h-4" />
-                초대하기
-              </button>
-              
-              {group.isOwner && (
-                <button className="flex items-center gap-2 px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors">
-                  <Settings className="w-4 h-4" />
-                  설정
+            {/* 초대 코드 카드 */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-8 text-center"
+            >
+              <div className="text-sm text-stone-400 mb-2">초대 코드</div>
+              <div className="text-3xl font-mono font-bold text-white tracking-wider mb-6">
+                {group.inviteCode}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={copyInviteCode}
+                  className="flex-1 py-3 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  <Share2 className="w-5 h-5" />
+                  초대하기
                 </button>
-              )}
-            </div>
-          </div>
+                {group.isOwner && (
+                  <button className="flex-1 py-3 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    설정
+                  </button>
+                )}
+              </div>
+            </motion.div>
 
-          {/* 초대 코드 표시 */}
-          <div className="bg-stone-900/30 border border-stone-700/30 rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm text-stone-400 mb-1">초대 코드</div>
-                <div className="text-xl font-mono font-bold text-white tracking-widest">
-                  {group.inviteCode}
-                </div>
-              </div>
-              <button
-                onClick={copyInviteCode}
-                className="px-3 py-2 bg-stone-700/50 hover:bg-stone-600/50 text-stone-300 rounded-lg transition-colors text-sm"
-              >
-                복사
-              </button>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* 메인 액션 버튼 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
-        >
-          <button
-            onClick={() => setShowUpload(true)}
-            className="group relative bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-3xl p-8 hover:border-stone-600/70 hover:bg-stone-800/70 transition-all duration-300 overflow-hidden"
-          >
-            <div className="relative z-10 text-center space-y-4">
-              <div className="w-16 h-16 mx-auto bg-blue-600/20 rounded-2xl flex items-center justify-center group-hover:bg-blue-600/30 group-hover:scale-110 transition-all duration-300">
-                <Upload className="w-8 h-8 text-blue-400" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-blue-200 transition-colors">
-                  사진/동영상 업로드
-                </h3>
-                <p className="text-stone-400 leading-relaxed">
-                  최대 5000개 파일을 원본 화질로 업로드하세요
-                </p>
-              </div>
-            </div>
-          </button>
-
-          <button 
-            onClick={() => setShowGallery(true)}
-            className="group relative bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-3xl p-8 hover:border-stone-600/70 hover:bg-stone-800/70 transition-all duration-300 overflow-hidden"
-          >
-            <div className="relative z-10 text-center space-y-4">
-              <div className="w-16 h-16 mx-auto bg-purple-600/20 rounded-2xl flex items-center justify-center group-hover:bg-purple-600/30 group-hover:scale-110 transition-all duration-300">
-                <ImageIcon className="w-8 h-8 text-purple-400" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-purple-200 transition-colors">
-                  갤러리 보기
-                </h3>
-                <p className="text-stone-400 leading-relaxed">
-                  업로드된 모든 사진과 동영상을 확인하세요
-                </p>
-              </div>
-            </div>
-          </button>
-        </motion.div>
-
-        {/* 최근 업로드 섹션 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-8"
-        >
-          <h2 className="text-2xl font-bold text-white mb-6">최근 업로드</h2>
-          
-          {group.mediaCount === 0 ? (
-            <div className="text-center py-12">
-              <ImageIcon className="w-16 h-16 text-stone-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-stone-400 mb-2">
-                아직 업로드된 미디어가 없습니다
-              </h3>
-              <p className="text-stone-500 mb-6">
-                첫 번째 사진이나 동영상을 업로드해보세요!
-              </p>
+            {/* 메인 액션 버튼 */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="space-y-6"
+            >
               <button
                 onClick={() => setShowUpload(true)}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors"
+                className="w-full bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-8 hover:bg-stone-800/70 transition-all group"
               >
-                지금 업로드하기
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 bg-stone-700/50 rounded-2xl flex items-center justify-center group-hover:bg-stone-600/50 transition-colors">
+                    <Upload className="w-8 h-8 text-stone-300" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="text-xl font-semibold text-white mb-1">
+                      사진/동영상 업로드
+                    </h3>
+                    <p className="text-stone-400 text-sm">
+                      최대 5000개 파일을 원본 화질로 업로드하세요
+                    </p>
+                  </div>
+                </div>
               </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {/* TODO: 실제 미디어 썸네일 표시 */}
-              <div className="aspect-square bg-stone-700 rounded-xl"></div>
-            </div>
-          )}
-        </motion.div>
+
+              <button 
+                onClick={() => setShowGallery(true)}
+                className="w-full bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-8 hover:bg-stone-800/70 transition-all group"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 bg-stone-700/50 rounded-2xl flex items-center justify-center group-hover:bg-stone-600/50 transition-colors">
+                    <ImageIcon className="w-8 h-8 text-stone-300" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="text-xl font-semibold text-white mb-1">
+                      갤러리 보기
+                    </h3>
+                    <p className="text-stone-400 text-sm">
+                      업로드된 모든 사진과 동영상을 확인하세요
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </motion.div>
+
+            {/* 최근 업로드 섹션 */}
+            {group.mediaCount === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-center"
+              >
+                <div className="bg-stone-800/30 backdrop-blur border border-stone-700/30 rounded-3xl p-12">
+                  <ImageIcon className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-stone-400 mb-2">
+                    아직 업로드된 미디어가 없습니다
+                  </h3>
+                  <p className="text-stone-500">
+                    첫 번째 사진이나 동영상을 업로드해보세요!
+                  </p>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-8"
+              >
+                <h2 className="text-2xl font-bold text-white mb-6">최근 업로드</h2>
+                <div className="grid grid-cols-3 gap-2">
+                  {/* TODO: 실제 미디어 썸네일 표시 */}
+                  <div className="aspect-square bg-stone-700 rounded-xl"></div>
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+        </div>
+        <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
       </div>
     </div>
   );

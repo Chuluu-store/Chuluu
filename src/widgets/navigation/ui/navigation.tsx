@@ -47,56 +47,25 @@ export const Navigation = memo(function Navigation({
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: "20px",
-        left: "50%",
-        marginLeft: "-160px",
-        zIndex: 50,
-        pointerEvents: "none",
-        width: "320px",
-      }}
-    >
-      <div className="safe-bottom" style={{ pointerEvents: "auto" }}>
-        <div
-          style={{
-            width: "100%",
-            background: "rgba(41, 37, 36, 0.9)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(120, 113, 108, 0.5)",
-            borderRadius: "24px",
-            padding: "12px",
-            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-          }}
-        >
-          <div
-            style={{
-              position: "relative",
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "6px",
-            }}
-          >
+    <div className="sticky bottom-0 z-50 w-full pb-5 pt-2">
+      <div className="max-w-xs mx-auto px-4">
+        <div className="bg-stone-800/90 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-3 shadow-2xl">
+          <div className="relative grid grid-cols-2 gap-1.5">
             {/* 슬라이딩 배경 */}
             <motion.div
+              className="absolute inset-y-0 left-0 bg-stone-700 rounded-2xl will-change-transform"
               style={{
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                left: 0,
-                background: "rgba(120, 113, 108, 1)",
-                borderRadius: "14px",
                 width: "calc(50% - 3px)",
+                transform: "translateZ(0)",
               }}
               animate={{
                 x: currentPage === "groups" ? "calc(100% + 6px)" : "0%",
               }}
               transition={{
                 type: "spring",
-                stiffness: 400,
-                damping: 40,
-                mass: 1,
+                stiffness: 500,
+                damping: 35,
+                mass: 0.8,
               }}
             />
 
@@ -104,21 +73,7 @@ export const Navigation = memo(function Navigation({
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                style={{
-                  position: "relative",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  padding: "12px 0",
-                  borderRadius: "14px",
-                  zIndex: 10,
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: currentPage === item.id ? "#ffffff" : "#a8a29e",
-                  fontWeight: currentPage === item.id ? "600" : "500",
-                  transition: "all 0.2s ease",
-                }}
+                className="relative z-10 flex flex-col items-center py-3 rounded-2xl bg-transparent border-none cursor-pointer transition-all duration-200"
               >
                 <item.icon
                   className={`w-5 h-5 mb-1 transition-all duration-200 ${
@@ -128,11 +83,11 @@ export const Navigation = memo(function Navigation({
                   }`}
                 />
                 <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: currentPage === item.id ? "600" : "500",
-                    color: currentPage === item.id ? "#ffffff" : "#a8a29e",
-                  }}
+                  className={`text-xs transition-all duration-200 ${
+                    currentPage === item.id
+                      ? "text-white font-semibold"
+                      : "text-stone-400 font-medium"
+                  }`}
                 >
                   {item.label}
                 </span>

@@ -7,6 +7,7 @@ export interface IGroup extends Document {
   owner: mongoose.Types.ObjectId;
   members: mongoose.Types.ObjectId[];
   media: mongoose.Types.ObjectId[];
+  mediaCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,7 +41,11 @@ const GroupSchema = new Schema<IGroup>({
   media: [{
     type: Schema.Types.ObjectId,
     ref: 'Media'
-  }]
+  }],
+  mediaCount: {
+    type: Number,
+    default: 0
+  }
 }, {
   timestamps: true
 });
@@ -93,4 +98,4 @@ GroupSchema.pre('save', async function(next) {
   next();
 });
 
-export const Group = mongoose.models.Group || mongoose.model<IGroup>('Group', GroupSchema);
+export const Group = mongoose.models.Group || mongoose.model<IGroup>('Group', GroupSchema, 'photo_groups');

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { AlertTriangle, Home, RefreshCcw } from 'lucide-react';
-import Link from 'next/link';
+import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { AlertTriangle, Home, RefreshCcw } from "lucide-react";
+import Link from "next/link";
 
 export default function Error({
   error,
@@ -17,7 +17,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-stone-900 flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -27,7 +27,7 @@ export default function Error({
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring' }}
+          transition={{ delay: 0.2, type: "spring" }}
           className="w-24 h-24 mx-auto bg-red-600/20 rounded-full flex items-center justify-center"
         >
           <AlertTriangle className="w-12 h-12 text-red-400" />
@@ -43,7 +43,7 @@ export default function Error({
           >
             문제가 발생했습니다
           </motion.h1>
-          
+
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -56,14 +56,16 @@ export default function Error({
           </motion.p>
 
           {/* 개발 환경에서만 에러 상세 정보 표시 */}
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === "development" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
               className="mt-6 p-4 bg-stone-800/50 border border-stone-700/50 rounded-xl text-left"
             >
-              <p className="text-xs text-stone-500 mb-2">개발 모드 - 에러 정보:</p>
+              <p className="text-xs text-stone-500 mb-2">
+                개발 모드 - 에러 정보:
+              </p>
               <code className="text-xs text-red-400 break-all">
                 {error.message}
               </code>

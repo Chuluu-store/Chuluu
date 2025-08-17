@@ -28,12 +28,23 @@ const inter = localFont({
   ],
   variable: "--font-inter",
   display: "swap",
-  fallback: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "Segoe UI", "Roboto", "sans-serif"],
+  fallback: [
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "SF Pro Display",
+    "Segoe UI",
+    "Roboto",
+    "sans-serif",
+  ],
 });
 
 export const metadata: Metadata = {
-  title: "Chuluu - Photo & Video Gallery",
-  description: "Share your memories from Mongolia",
+  title: "Chuluu(촐로)",
+  description: "당신의 추억을 하나하나 마치 돌탑처럼 쌓아올리세요",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/logo.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

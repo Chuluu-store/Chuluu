@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
       { expiresIn: '7d' }
     );
     
-    // 응답
-    return NextResponse.json({
+    // 응답 with 쿠키
+    const response = NextResponse.json({
       token,
       user: {
         id: user._id,
@@ -85,6 +85,16 @@ export async function POST(request: NextRequest) {
         groups: []
       }
     });
+    
+    // 쿠키에 토큰 저장 (httpOnly로 보안 강화)
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7일
+    });
+    
+    return response;
     
   } catch (error) {
     console.error('Login error:', error);

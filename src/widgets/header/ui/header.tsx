@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { LogOut } from "lucide-react";
 
 export function Header() {
@@ -27,14 +28,20 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-stone-600/20 bg-stone-800/70 backdrop-blur-xl shadow-lg">
-      <div className="safe-top">
+    <header className="sticky top-0 z-50 w-full max-w-md mx-auto">
+      <div className="safe-top bg-stone-800/70 backdrop-blur-xl border-b border-stone-600/20 shadow-lg">
         <div className="px-8">
           <div className="flex items-center justify-between h-20">
             {/* 로고 섹션 */}
             <Link href="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-stone-700 flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-lg">C</span>
+              <div className="w-10 h-10 relative">
+                <Image 
+                  src="/logo.png" 
+                  alt="Chuluu Logo" 
+                  width={40} 
+                  height={40} 
+                  className="rounded-xl"
+                />
               </div>
               <h1 className="text-xl font-semibold text-white">Chuluu</h1>
             </Link>

@@ -4,6 +4,9 @@ import { Group } from '@/entities/group/model/group.model';
 import { User } from '@/entities/user/model/user.model';
 import { verifyToken } from '@/shared/lib/auth';
 
+// User 모델 등록 확보
+User;
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
@@ -33,20 +36,24 @@ export async function GET(request: NextRequest) {
     .sort({ updatedAt: -1 }) // 최근 업데이트된 순서로 정렬
     .lean();
 
-    // 응답 데이터 가공
+    // 응답 데이터 가공 (owner가 null인 경우 처리)
     const formattedGroups = groups.map(group => ({
       id: group._id,
       name: group.name,
       description: group.description,
       inviteCode: group.inviteCode,
-      owner: {
+      owner: group.owner ? {
         id: group.owner._id,
         username: group.owner.username,
         email: group.owner.email
+      } : {
+        id: null,
+        username: 'Unknown User',
+        email: ''
       },
-      isOwner: group.owner._id.toString() === decoded.userId,
+      isOwner: group.owner ? group.owner._id.toString() === decoded.userId : false,
       memberCount: group.members.length,
-      mediaCount: group.media.length,
+      mediaCount: group.mediaCount || 0,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt
     }));

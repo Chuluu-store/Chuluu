@@ -4,6 +4,7 @@ import { UploadSession } from '@/entities/upload/model/upload-session.model';
 import { Media } from '@/entities/media/model/media.model';
 import { Group } from '@/entities/group/model/group.model';
 import { verifyToken } from '@/shared/lib/auth';
+import { env } from '@/shared/config/env';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
@@ -15,12 +16,14 @@ export const runtime = 'nodejs';
 export const maxDuration = 300; // 5분 타임아웃
 
 export async function POST(request: NextRequest) {
+  console.log('📁 File upload started');
   try {
     await connectDB();
     
     // 토큰 검증
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
+      console.error('❌ No token provided');
       return NextResponse.json(
         { error: '인증이 필요합니다' },
         { status: 401 }
@@ -40,7 +43,15 @@ export async function POST(request: NextRequest) {
     const sessionId = formData.get('sessionId') as string;
     const fileIndex = parseInt(formData.get('fileIndex') as string);
 
+    console.log('📋 Upload request details:', {
+      fileName: file?.name,
+      fileSize: file?.size,
+      sessionId,
+      fileIndex
+    });
+
     if (!file || !sessionId || isNaN(fileIndex)) {
+      console.error('❌ Missing required fields:', { file: !!file, sessionId: !!sessionId, fileIndex });
       return NextResponse.json(
         { error: '파일, 세션 ID, 파일 인덱스가 필요합니다' },
         { status: 400 }
@@ -102,7 +113,7 @@ export async function POST(request: NextRequest) {
       await session.save();
 
       // 파일 저장 경로 설정
-      const uploadDir = process.env.UPLOAD_PATH || '/tmp/uploads';
+      const uploadDir = env.UPLOAD_PATH;
       const groupDir = path.join(uploadDir, session.groupId.toString());
       const yearMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
       const dateDir = path.join(groupDir, yearMonth);

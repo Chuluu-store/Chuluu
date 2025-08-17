@@ -1,24 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbConnect } from "@/shared/lib/database";
-import { MediaModel } from "@/entities/media/model/schema";
+import { connectDB } from "@/shared/lib/database";
+import { Media } from "@/entities/media/model/media.model";
 
 
 export async function GET(request: NextRequest) {
   try {
-    await dbConnect();
+    await connectDB();
 
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
 
-    const media = await MediaModel.find()
+    const media = await Media.find()
       .sort({ uploadedAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const total = await MediaModel.countDocuments();
+    const total = await Media.countDocuments();
 
     return NextResponse.json({
       media,

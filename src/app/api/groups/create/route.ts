@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
       inviteCode,
       owner: decoded.userId,
       members: [decoded.userId],
-      media: []
+      media: [],
+      mediaCount: 0
     });
     
     // 사용자 그룹 목록에 추가

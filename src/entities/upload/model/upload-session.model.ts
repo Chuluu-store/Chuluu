@@ -91,4 +91,4 @@ UploadSessionSchema.index({ userId: 1, startedAt: -1 });
 UploadSessionSchema.index({ groupId: 1, startedAt: -1 });
 UploadSessionSchema.index({ status: 1 });
 
-export const UploadSession = mongoose.models.UploadSession || mongoose.model<IUploadSession>('UploadSession', UploadSessionSchema);
+export const UploadSession = mongoose.models.UploadSession || mongoose.model<IUploadSession>('UploadSession', UploadSessionSchema, 'upload_sessions');

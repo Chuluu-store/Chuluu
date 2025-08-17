@@ -96,4 +96,4 @@ MediaSchema.index({ groupId: 1, uploadedAt: -1 }); // 업로드날짜 기준 정
 MediaSchema.index({ uploadedBy: 1, uploadedAt: -1 });
 MediaSchema.index({ status: 1 });
 
-export const Media = mongoose.models.Media || mongoose.model<IMedia>('Media', MediaSchema);
+export const Media = mongoose.models.Media || mongoose.model<IMedia>('Media', MediaSchema, 'media_items');

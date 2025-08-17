@@ -2,21 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { LoginForm } from "@/features/auth/ui/login-form";
 import { GroupModal } from "@/features/group/ui/group-modal";
 import { LoginPrompt } from "@/features/auth/ui/login-prompt";
 import { GroupsHero } from "@/widgets/groups/ui/groups-hero";
 import { GroupsList } from "@/widgets/groups/ui/groups-list";
 import { EmptyGroupsState } from "@/widgets/groups/ui/empty-groups-state";
-import { GroupDetailPage } from "@/widgets/groups/ui/group-detail-page";
 import { type Group } from "@/entities/group/model/types";
 
 export function GroupsPage() {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [groupModal, setGroupModal] = useState<{
     isOpen: boolean;
     type: "create" | "join";
@@ -74,26 +74,12 @@ export function GroupsPage() {
 
   const handleGroupClick = (group: Group) => {
     console.log("그룹 선택:", group);
-    setSelectedGroup(group);
+    router.push(`/group/${group.id}`);
   };
-
-  const handleBackToList = () => {
-    setSelectedGroup(null);
-  };
-
-  // 그룹 상세 페이지 표시
-  if (selectedGroup) {
-    return (
-      <GroupDetailPage
-        group={selectedGroup}
-        onBack={handleBackToList}
-      />
-    );
-  }
 
   if (!isLoggedIn) {
     return (
-      <div className="w-full max-w-md mx-auto">
+      <div className="w-full">
         <div className="px-8 py-16 pb-24">
           <motion.div
             initial={{ opacity: 0 }}
@@ -117,7 +103,7 @@ export function GroupsPage() {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full">
       <div className="px-8 py-16 pb-24">
         <motion.div
           initial={{ opacity: 0 }}

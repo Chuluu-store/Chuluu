@@ -119,10 +119,14 @@ export async function GET(
         mimeType: item.mimeType,
         size: item.size,
         thumbnailPath: item.thumbnailPath,
-        uploadedBy: {
+        uploadedBy: item.uploadedBy ? {
           id: item.uploadedBy._id,
-          username: item.uploadedBy.username,
-          email: item.uploadedBy.email
+          username: item.uploadedBy.username || 'Unknown User',
+          email: item.uploadedBy.email || ''
+        } : {
+          id: 'unknown',
+          username: 'Unknown User',
+          email: ''
         },
         uploadedAt: item.uploadedAt,
         takenAt: item.metadata?.takenAt || item.uploadedAt,

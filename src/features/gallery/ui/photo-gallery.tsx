@@ -16,9 +16,11 @@ import {
   VolumeX,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from 'lucide-react';
 import Image from 'next/image';
+import { GalleryFilter } from './gallery-filter';
 
 interface MediaItem {
   id: string;
@@ -67,6 +69,15 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   const [allMedia, setAllMedia] = useState<MediaItem[]>([]);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isVideoMuted, setIsVideoMuted] = useState(true);
+  const [filters, setFilters] = useState({
+    sortBy: 'takenAt' as 'takenAt' | 'uploadedAt',
+    order: 'desc' as 'desc' | 'asc',
+    mediaType: undefined as 'image' | 'video' | undefined,
+    cameraMake: undefined as string | undefined
+  });
+  const [cameraOptions, setCameraOptions] = useState<string[]>([]);
+  const [deletingMedia, setDeletingMedia] = useState<string | null>(null);
+  const [mediaCounts, setMediaCounts] = useState({ images: 0, videos: 0 });
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // 미디어 데이터 로드
@@ -76,7 +87,18 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`/api/groups/${groupId}/media?sortBy=takenAt&order=desc&limit=200`, {
+      // URL 파라미터 구성
+      const params = new URLSearchParams({
+        sortBy: filters.sortBy,
+        order: filters.order,
+        limit: '200'
+      });
+      
+      if (filters.mediaType) {
+        params.append('type', filters.mediaType);
+      }
+
+      const response = await fetch(`/api/groups/${groupId}/media?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -94,13 +116,34 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
         return [...acc, ...group.media];
       }, []);
       setAllMedia(flatMedia);
+      
+      // 카메라 옵션 추출
+      const cameras = new Set<string>();
+      flatMedia.forEach((item: MediaItem) => {
+        if (item.metadata?.cameraMake) {
+          const cameraName = item.metadata.cameraModel 
+            ? `${item.metadata.cameraMake} ${item.metadata.cameraModel}`
+            : item.metadata.cameraMake;
+          cameras.add(cameraName);
+        }
+      });
+      setCameraOptions(Array.from(cameras).sort());
+      
+      // 미디어 타입별 카운트 계산
+      const imageCount = flatMedia.filter((item: MediaItem) => 
+        item.mimeType.startsWith('image/')
+      ).length;
+      const videoCount = flatMedia.filter((item: MediaItem) => 
+        item.mimeType.startsWith('video/')
+      ).length;
+      setMediaCounts({ images: imageCount, videos: videoCount });
 
     } catch (error) {
       console.error('미디어 로드 오류:', error);
     } finally {
       setLoading(false);
     }
-  }, [groupId]);
+  }, [groupId, filters.sortBy, filters.order, filters.mediaType]);
 
   useEffect(() => {
     loadMedia();
@@ -188,6 +231,37 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
     }
   };
 
+  // 미디어 삭제
+  const handleDeleteMedia = async (mediaId: string) => {
+    if (!confirm('이 미디어를 삭제하시겠습니까?')) return;
+    
+    try {
+      setDeletingMedia(mediaId);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`/api/media/${mediaId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('미디어 삭제 실패');
+      }
+
+      // 삭제 성공 시 갤러리 새로고침
+      closeModal();
+      loadMedia();
+    } catch (error) {
+      console.error('미디어 삭제 오류:', error);
+      alert('미디어 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setDeletingMedia(null);
+    }
+  };
+
   // 파일 크기 포맷
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -220,7 +294,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   return (
     <div className="min-h-screen bg-stone-900">
       {/* 헤더 */}
-      <div className="sticky top-0 z-10 bg-stone-900/80 backdrop-blur-xl border-b border-stone-700/30">
+      <div className="sticky top-0 z-20 bg-stone-900/80 backdrop-blur-xl border-b border-stone-700/30">
         <div className="p-4 flex items-center justify-between">
           <button
             onClick={onBack}
@@ -232,16 +306,35 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
           
           <h1 className="text-xl font-semibold text-white">갤러리</h1>
           
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-stone-400">
-              총 {allMedia.length}개
-            </span>
+          <div className="flex items-center gap-3 text-sm text-stone-400">
+            {mediaCounts.images > 0 && (
+              <span className="flex items-center gap-1">
+                <span className="text-stone-300">{mediaCounts.images}</span>
+                <span>사진</span>
+              </span>
+            )}
+            {mediaCounts.videos > 0 && (
+              <span className="flex items-center gap-1">
+                <span className="text-stone-300">{mediaCounts.videos}</span>
+                <span>동영상</span>
+              </span>
+            )}
+            {mediaCounts.images === 0 && mediaCounts.videos === 0 && (
+              <span>미디어 없음</span>
+            )}
           </div>
         </div>
       </div>
 
+      {/* 필터 바 */}
+      <GalleryFilter 
+        filters={filters}
+        onFilterChange={setFilters}
+        cameraOptions={cameraOptions}
+      />
+
       {/* 갤러리 그리드 */}
-      <div className="p-4 space-y-8">
+      <div className="p-4 space-y-8 max-w-6xl mx-auto">
         {mediaGroups.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-stone-400 text-lg">업로드된 사진이나 동영상이 없습니다</div>
@@ -264,16 +357,24 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                 </p>
               </div>
 
-              {/* 미디어 그리드 */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
-                {group.media.map((media) => (
-                  <motion.div
-                    key={media.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="relative aspect-square bg-stone-800 rounded-lg overflow-hidden cursor-pointer group"
-                    onClick={() => handleMediaClick(media)}
-                  >
+              {/* 미디어 그리드 - Masonry 레이아웃 */}
+              <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 space-y-2">
+                {group.media.map((media, index) => {
+                  // 랜덤한 aspect ratio로 돌처럼 보이게 하기
+                  const aspectRatios = ['aspect-square', 'aspect-[4/5]', 'aspect-[5/4]', 'aspect-[3/4]', 'aspect-[4/3]'];
+                  const randomAspect = aspectRatios[index % aspectRatios.length];
+                  
+                  return (
+                    <motion.div
+                      key={media.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.02 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`relative ${randomAspect} bg-stone-800 rounded-xl overflow-hidden cursor-pointer group break-inside-avoid mb-2`}
+                      onClick={() => handleMediaClick(media)}
+                    >
                     {/* 썸네일 */}
                     {media.mimeType.startsWith('image/') ? (
                       <Image
@@ -308,8 +409,9 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                         <span className="truncate">{media.uploadedBy.username}</span>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             </motion.div>
           ))
@@ -456,6 +558,13 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                     </button>
                     <button className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
                       <Download className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteMedia(selectedMedia.id)}
+                      disabled={deletingMedia === selectedMedia.id}
+                      className="p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-400" />
                     </button>
                   </div>
                 </div>
