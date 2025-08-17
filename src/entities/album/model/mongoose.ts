@@ -18,7 +18,6 @@ AlbumSchema.pre("save", function () {
 });
 
 // Create indexes
-AlbumSchema.index({ shareToken: 1 });
 AlbumSchema.index({ createdAt: -1 });
 AlbumSchema.index({ isPublic: 1 });
 

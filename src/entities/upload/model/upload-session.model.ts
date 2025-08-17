@@ -87,7 +87,6 @@ const UploadSessionSchema = new Schema<IUploadSession>({
 });
 
 // 인덱스 설정
-UploadSessionSchema.index({ sessionId: 1 });
 UploadSessionSchema.index({ userId: 1, startedAt: -1 });
 UploadSessionSchema.index({ groupId: 1, startedAt: -1 });
 UploadSessionSchema.index({ status: 1 });
