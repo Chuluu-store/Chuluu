@@ -110,7 +110,10 @@ else
 fi
 
 echo -e "${YELLOW}📦 의존성 설치 중...${NC}"
-npm ci
+# 기존 node_modules 제거 (의존성 충돌 방지)
+rm -rf node_modules package-lock.json
+npm install --production=false
+# 프로덕션 빌드를 위해 모든 의존성 설치 필요
 
 echo -e "${YELLOW}🏗️  프로덕션 빌드 중...${NC}"
 npm run build
