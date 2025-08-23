@@ -113,6 +113,7 @@ export async function GET(
         id: item._id,
         filename: item.filename,
         originalName: item.originalName,
+        path: item.path, // 원본 파일 경로 추가
         mimeType: item.mimeType,
         size: item.size,
         thumbnailPath: item.thumbnailPath,

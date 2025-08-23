@@ -204,11 +204,20 @@ export async function POST(request: NextRequest) {
     }
 
     // 미디어 정보를 데이터베이스에 저장
+    // 상대 경로로 저장 (웹에서 접근 가능한 경로)
+    const relativePath = `/uploads/${groupId}/${fileName}`;
+    const relativeThumbnailPath = thumbnailPath
+      ? `/uploads/${groupId}/thumbnails/thumb_${fileName.replace(
+          extension,
+          ".jpg"
+        )}`
+      : null;
+
     const media = await Media.create({
       filename: originalName,
       originalName,
-      path: filePath,
-      thumbnailPath,
+      path: relativePath,
+      thumbnailPath: relativeThumbnailPath,
       mimeType: file.type,
       size: file.size,
       groupId,

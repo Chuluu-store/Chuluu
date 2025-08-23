@@ -26,6 +26,7 @@ interface MediaItem {
   id: string;
   filename: string;
   originalName: string;
+  path: string;  // 원본 파일 경로 추가
   mimeType: string;
   size: number;
   thumbnailPath?: string;
@@ -273,14 +274,25 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
 
   // 썸네일 URL 생성
   const getThumbnailUrl = (media: MediaItem) => {
+    // 썸네일 경로가 있으면 직접 사용 (Nginx가 서빙)
     if (media.thumbnailPath) {
+      return media.thumbnailPath;
+    }
+    // 썸네일이 없으면 API를 통해 생성
+    if (media.mimeType.startsWith('image/')) {
       return `/api/media/thumbnail/${media.id}`;
     }
-    // 썸네일이 없으면 원본 이미지 사용 (비디오는 기본 아이콘)
-    if (media.mimeType.startsWith('image/')) {
-      return `/api/media/file/${media.id}`;
-    }
     return null;
+  };
+  
+  // 원본 파일 URL 생성
+  const getOriginalUrl = (media: MediaItem) => {
+    // 파일 경로가 있으면 직접 사용 (Nginx가 서빙)
+    if (media.path && media.path.startsWith('/uploads/')) {
+      return media.path;
+    }
+    // fallback으로 API 사용
+    return `/api/media/file/${media.id}`;
   };
 
   if (loading) {
@@ -470,7 +482,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
               <div className="relative max-w-full max-h-full">
                 {selectedMedia.mimeType.startsWith('image/') ? (
                   <Image
-                    src={`/api/media/file/${selectedMedia.id}`}
+                    src={getOriginalUrl(selectedMedia)}
                     alt={selectedMedia.originalName}
                     width={selectedMedia.metadata.width || 800}
                     height={selectedMedia.metadata.height || 600}
@@ -480,7 +492,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                   <div className="relative">
                     <video
                       ref={videoRef}
-                      src={`/api/media/file/${selectedMedia.id}`}
+                      src={getOriginalUrl(selectedMedia)}
                       className="max-w-full max-h-[70vh]"
                       controls={false}
                       muted={isVideoMuted}

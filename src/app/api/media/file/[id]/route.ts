@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile, stat } from "fs/promises";
 import { existsSync } from "fs";
+import path from "path";
 
 import { verifyToken } from "../../../../../shared/lib/auth";
 import { connectDB } from "../../../../../shared/lib/database";
 import { Media } from "../../../../../entities/media/model/media.model";
 import { Group } from "../../../../../entities/group/model/group.model";
+import { env } from "../../../../../shared/config/env";
 
 export async function GET(
   request: NextRequest,
@@ -50,8 +52,17 @@ export async function GET(
     // 임시로 공개 접근 허용 (나중에 보안 강화 필요)
     // TODO: 보안 강화 - 서명된 URL 또는 임시 토큰 사용
 
+    // 실제 파일 경로 계산 (상대 경로를 절대 경로로 변환)
+    const uploadBase = env.UPLOAD_PATH || "/tmp/uploads";
+    const actualFilePath = media.path.startsWith("/uploads/")
+      ? path.join(uploadBase, media.path.replace("/uploads/", ""))
+      : media.path.startsWith("/home/pi/")
+      ? media.path  // 기존 절대 경로 호환
+      : path.join(uploadBase, media.path);
+
     // 파일 존재 확인
-    if (!existsSync(media.path)) {
+    if (!existsSync(actualFilePath)) {
+      console.error("File not found:", actualFilePath);
       return NextResponse.json(
         { error: "파일을 찾을 수 없습니다" },
         { status: 404 }
@@ -59,8 +70,8 @@ export async function GET(
     }
 
     // 파일 정보 조회
-    const fileStat = await stat(media.path);
-    const fileBuffer = await readFile(media.path);
+    const fileStat = await stat(actualFilePath);
+    const fileBuffer = await readFile(actualFilePath);
 
     // Range 요청 처리 (비디오 스트리밍용)
     const range = request.headers.get("range");
@@ -70,7 +81,7 @@ export async function GET(
       const end = parts[1] ? parseInt(parts[1], 10) : fileStat.size - 1;
       const chunksize = end - start + 1;
 
-      const file = await readFile(media.path);
+      const file = await readFile(actualFilePath);
       const chunk = file.slice(start, end + 1);
 
       return new NextResponse(chunk, {

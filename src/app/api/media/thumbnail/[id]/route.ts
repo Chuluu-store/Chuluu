@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { existsSync } from "fs";
 import { readFile } from "fs/promises";
 import sharp from "sharp";
+import path from "path";
 
 import { verifyToken } from "../../../../../shared/lib/auth";
 import { connectDB } from "../../../../../shared/lib/database";
 import { Media } from "../../../../../entities/media/model/media.model";
 import { Group } from "../../../../../entities/group/model/group.model";
+import { env } from "../../../../../shared/config/env";
 
 export async function GET(
   request: NextRequest,
@@ -49,12 +51,28 @@ export async function GET(
     }
     // TODO: 보안 강화 필요
 
+    // 실제 파일 경로 계산
+    const uploadBase = env.UPLOAD_PATH || "/tmp/uploads";
+    const actualThumbnailPath = media.thumbnailPath?.startsWith("/uploads/")
+      ? path.join(uploadBase, media.thumbnailPath.replace("/uploads/", ""))
+      : media.thumbnailPath?.startsWith("/home/pi/")
+      ? media.thumbnailPath
+      : media.thumbnailPath 
+      ? path.join(uploadBase, media.thumbnailPath)
+      : null;
+    
+    const actualFilePath = media.path.startsWith("/uploads/")
+      ? path.join(uploadBase, media.path.replace("/uploads/", ""))
+      : media.path.startsWith("/home/pi/")
+      ? media.path
+      : path.join(uploadBase, media.path);
+
     let thumbnailBuffer: Buffer;
 
     // 기존 썸네일이 있는지 확인
-    if (media.thumbnailPath && existsSync(media.thumbnailPath)) {
+    if (actualThumbnailPath && existsSync(actualThumbnailPath)) {
       try {
-        thumbnailBuffer = await readFile(media.thumbnailPath);
+        thumbnailBuffer = await readFile(actualThumbnailPath);
 
         // 요청된 크기와 다르면 리사이즈
         if (size !== 300) {
@@ -68,11 +86,11 @@ export async function GET(
         }
       } catch (thumbError) {
         console.log("기존 썸네일 로드 실패, 새로 생성:", thumbError);
-        thumbnailBuffer = await generateThumbnail(media.path, size);
+        thumbnailBuffer = await generateThumbnail(actualFilePath, size);
       }
     } else {
       // 썸네일이 없으면 새로 생성
-      thumbnailBuffer = await generateThumbnail(media.path, size);
+      thumbnailBuffer = await generateThumbnail(actualFilePath, size);
     }
 
     return new NextResponse(new Uint8Array(thumbnailBuffer), {
