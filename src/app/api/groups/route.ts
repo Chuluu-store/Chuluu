@@ -10,21 +10,26 @@ User;
 
 export async function GET(request: NextRequest) {
   try {
+    console.log("📋 Getting groups list...");
     await connectDB();
 
     // 토큰 검증
     const token = request.headers.get("Authorization")?.replace("Bearer ", "");
     if (!token) {
+      console.error("❌ No token for groups list");
       return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
     if (!decoded) {
+      console.error("❌ Invalid token for groups list");
       return NextResponse.json(
         { error: "유효하지 않은 토큰입니다" },
         { status: 401 }
       );
     }
+
+    console.log("✅ Getting groups for userId:", decoded.userId);
 
     // 사용자가 속한 그룹들 조회
     const groups = await Group.find({
@@ -33,6 +38,8 @@ export async function GET(request: NextRequest) {
       .populate("owner", "username email")
       .sort({ updatedAt: -1 }) // 최근 업데이트된 순서로 정렬
       .lean();
+
+    console.log(`📦 Found ${groups.length} groups for user`);
 
     // 응답 데이터 가공 (owner가 null인 경우 처리)
     const formattedGroups = groups.map((group) => ({

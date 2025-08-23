@@ -7,24 +7,30 @@ import { Group } from "../../../../entities/group/model/group.model";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("🆕 Creating new group...");
     await connectDB();
 
     // 토큰 검증
     const token = request.headers.get("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
+      console.error("❌ No token provided for group creation");
       return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
     if (!decoded) {
+      console.error("❌ Invalid token for group creation");
       return NextResponse.json(
         { error: "유효하지 않은 토큰입니다" },
         { status: 401 }
       );
     }
 
+    console.log("✅ Creating group for userId:", decoded.userId);
+
     const { name, description } = await request.json();
+    console.log("📝 Group details:", { name, description });
 
     if (!name) {
       return NextResponse.json(
@@ -73,14 +79,22 @@ export async function POST(request: NextRequest) {
       mediaCount: 0,
     });
 
+    console.log("✅ Group created successfully:", {
+      id: group._id.toString(),
+      name: group.name,
+      inviteCode: group.inviteCode,
+    });
+
     // 사용자 그룹 목록에 추가
     await User.findByIdAndUpdate(decoded.userId, {
       $push: { groups: group._id },
     });
 
+    console.log("✅ User groups updated for userId:", decoded.userId);
+
     return NextResponse.json(
       {
-        id: group._id,
+        id: group._id.toString(),
         name: group.name,
         description: group.description,
         inviteCode: group.inviteCode,

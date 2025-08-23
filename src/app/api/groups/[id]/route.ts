@@ -18,59 +18,84 @@ export async function GET(
     const params = await context.params;
     const groupId = params.id;
 
+    console.log("🔍 Getting group with ID:", groupId);
+
     // 토큰 검증
     const token =
       request.headers.get("Authorization")?.replace("Bearer ", "") ||
       request.cookies.get("token")?.value;
 
     if (!token) {
+      console.error("❌ No token provided");
       return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
     if (!decoded) {
+      console.error("❌ Invalid token");
       return NextResponse.json(
         { error: "유효하지 않은 토큰입니다" },
         { status: 401 }
       );
     }
 
-    // 그룹 조회
-    const group = await Group.findById(groupId)
-      .populate("owner", "username email")
-      .populate("members", "username email")
-      .lean();
+    console.log("✅ Token verified for userId:", decoded.userId);
+
+    // 그룹 조회 - 먼저 기본 데이터만 조회
+    let group = await Group.findById(groupId).lean();
+
+    console.log("📦 Group query result:", group ? "Found" : "Not found");
 
     if (!group) {
+      // 추가 디버깅: 모든 그룹 목록 확인
+      const allGroups = await Group.find({}, "_id name").lean();
+      console.error("❌ Group not found. Available groups:", allGroups);
+      
       return NextResponse.json(
         { error: "그룹을 찾을 수 없습니다" },
         { status: 404 }
       );
     }
 
+    // populate 시도 (실패해도 계속 진행)
+    try {
+      group = await Group.findById(groupId)
+        .populate("owner", "username email")
+        .populate("members", "username email")
+        .lean();
+    } catch (popError) {
+      console.warn("⚠️ Populate failed, using raw data:", popError);
+    }
+
     console.log("Group data:", {
       id: (group as any)._id,
       owner: (group as any).owner,
       members: (group as any).members,
+      memberCount: (group as any).members?.length || 0,
       userId: decoded.userId,
     });
 
-    // 멤버 권한 확인 (populate된 경우와 안된 경우 모두 처리)
-    const isMember = (group as any).members.some((member: any) => {
-      const memberId =
-        typeof member === "object" && member._id
-          ? member._id.toString()
-          : member.toString();
-      console.log("Checking member:", memberId, "===", decoded.userId);
-      return memberId === decoded.userId;
-    });
+    // 멤버 권한 확인 - members 배열이 없거나 비어있는 경우 처리
+    let isMember = false;
+    if ((group as any).members && Array.isArray((group as any).members) && (group as any).members.length > 0) {
+      isMember = (group as any).members.some((member: any) => {
+        if (!member) return false;
+        const memberId =
+          typeof member === "object" && member._id
+            ? member._id.toString()
+            : member?.toString();
+        console.log("Checking member:", memberId, "===", decoded.userId);
+        return memberId === decoded.userId;
+      });
+    }
 
     // owner도 확인
-    const isGroupOwner =
-      (group as any).owner &&
-      (typeof (group as any).owner === "object"
-        ? (group as any).owner._id.toString() === decoded.userId
-        : (group as any).owner.toString() === decoded.userId);
+    let isGroupOwner = false;
+    if ((group as any).owner) {
+      isGroupOwner = typeof (group as any).owner === "object"
+        ? (group as any).owner._id?.toString() === decoded.userId
+        : (group as any).owner?.toString() === decoded.userId;
+    }
 
     if (!isMember && !isGroupOwner) {
       console.log("Access denied - userId:", decoded.userId);
@@ -92,31 +117,47 @@ export async function GET(
       );
     }
 
-    // 응답 데이터 가공
+    // 응답 데이터 가공 - null/undefined 처리 강화
     const formattedGroup = {
-      id: (group as any)._id,
-      name: (group as any).name,
-      description: (group as any).description,
-      inviteCode: (group as any).inviteCode,
-      owner: (group as any).owner
+      id: (group as any)._id?.toString() || groupId,
+      name: (group as any).name || "Unknown Group",
+      description: (group as any).description || "",
+      inviteCode: (group as any).inviteCode || "",
+      owner: (group as any).owner && typeof (group as any).owner === "object"
         ? {
-            id: (group as any).owner._id,
-            username: (group as any).owner.username,
-            email: (group as any).owner.email,
+            id: (group as any).owner._id?.toString() || (group as any).owner,
+            username: (group as any).owner.username || "Unknown User",
+            email: (group as any).owner.email || "",
+          }
+        : (group as any).owner
+        ? {
+            id: (group as any).owner.toString(),
+            username: "Unknown User",
+            email: "",
           }
         : null,
-      isOwner: (group as any).owner
-        ? (group as any).owner._id.toString() === decoded.userId
-        : false,
-      memberCount: (group as any).members.length,
+      isOwner: isGroupOwner,
+      memberCount: (group as any).members?.length || 0,
       mediaCount: (group as any).mediaCount || 0,
-      members: (group as any).members.map((member: any) => ({
-        id: member._id,
-        username: member.username,
-        email: member.email,
-      })),
-      createdAt: (group as any).createdAt,
-      updatedAt: (group as any).updatedAt,
+      members: Array.isArray((group as any).members)
+        ? (group as any).members.map((member: any) => {
+            if (!member) return null;
+            if (typeof member === "object" && member._id) {
+              return {
+                id: member._id.toString(),
+                username: member.username || "Unknown User",
+                email: member.email || "",
+              };
+            }
+            return {
+              id: member.toString(),
+              username: "Unknown User",
+              email: "",
+            };
+          }).filter(Boolean)
+        : [],
+      createdAt: (group as any).createdAt || new Date(),
+      updatedAt: (group as any).updatedAt || new Date(),
     };
 
     return NextResponse.json({
