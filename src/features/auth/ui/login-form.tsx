@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
 import { motion } from "framer-motion";
+import React, { useState } from "react";
 import { User, Lock, Mail, ArrowRight } from "lucide-react";
 
 interface LoginFormProps {
@@ -126,7 +126,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 </div>
               </div>
             )}
-            
+
             {/* 이메일 */}
             <div className="space-y-4">
               <label className="block text-base font-medium text-stone-300 px-2">
@@ -186,7 +186,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                     type="password"
                     value={formData.confirmPassword}
                     onChange={(e) =>
-                      setFormData({ ...formData, confirmPassword: e.target.value })
+                      setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value,
+                      })
                     }
                     className="flex-1 bg-transparent px-3 py-4 text-white placeholder-stone-500 text-base focus:placeholder-stone-400 focus:outline-none border-none"
                     placeholder="비밀번호를 다시 입력하세요"

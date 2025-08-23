@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCreateAlbum } from "../../../entities/album";
-import { validateAlbumName } from "../../../shared/lib";
+
 import { Button } from "../../../shared/ui";
+import { validateAlbumName } from "../../../shared/lib";
+import { useCreateAlbum } from "../../../entities/album";
 
 interface CreateAlbumModalProps {
   isOpen: boolean;

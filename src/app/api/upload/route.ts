@@ -4,30 +4,28 @@ import { constants } from "fs";
 import path from "path";
 import sharp from "sharp";
 import exifr from "exifr";
-import { connectDB } from "@/shared/lib/database";
-import { MediaModel } from "@/entities/media/model/schema";
-import { Group } from "@/entities/group/model/group.model";
-import { verifyToken } from "@/shared/lib/auth";
+
+import { verifyToken } from "../../../shared/lib/auth";
+import { connectDB } from "../../../shared/lib/database";
+import { MediaModel } from "../../../entities/media/model/schema";
+import { Group } from "../../../entities/group/model/group.model";
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    
+
     // 토큰 검증
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-    const groupId = request.headers.get('X-Group-Id');
-    
+    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+    const groupId = request.headers.get("X-Group-Id");
+
     if (!token) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
     }
-    
+
     const decoded = await verifyToken(token);
     if (!decoded) {
       return NextResponse.json(
-        { error: '유효하지 않은 토큰입니다' },
+        { error: "유효하지 않은 토큰입니다" },
         { status: 401 }
       );
     }
@@ -40,9 +38,19 @@ export async function POST(request: NextRequest) {
     }
 
     // 그룹별 폴더 생성
-    const groupFolder = groupId || 'general';
-    const uploadDir = path.join(process.cwd(), "public", "uploads", groupFolder);
-    const thumbnailDir = path.join(process.cwd(), "public", "thumbnails", groupFolder);
+    const groupFolder = groupId || "general";
+    const uploadDir = path.join(
+      process.cwd(),
+      "public",
+      "uploads",
+      groupFolder
+    );
+    const thumbnailDir = path.join(
+      process.cwd(),
+      "public",
+      "thumbnails",
+      groupFolder
+    );
 
     await mkdir(uploadDir, { recursive: true });
     await mkdir(thumbnailDir, { recursive: true });
@@ -57,7 +65,7 @@ export async function POST(request: NextRequest) {
       let filename = file.name;
       let filepath = path.join(uploadDir, filename);
       let counter = 1;
-      
+
       // 파일이 이미 존재하면 숫자 추가
       while (true) {
         try {
@@ -123,15 +131,14 @@ export async function POST(request: NextRequest) {
         metadata,
         isVideo,
         groupId: groupId || null,
-        uploadedBy: decoded.userId
+        uploadedBy: decoded.userId,
       });
-      
+
       // 그룹에 미디어 추가
       if (groupId) {
-        await Group.findByIdAndUpdate(
-          groupId,
-          { $push: { media: mediaDoc._id } }
-        );
+        await Group.findByIdAndUpdate(groupId, {
+          $push: { media: mediaDoc._id },
+        });
       }
 
       uploadedFiles.push(mediaDoc);
@@ -141,7 +148,7 @@ export async function POST(request: NextRequest) {
       success: true,
       files: uploadedFiles,
       count: uploadedFiles.length,
-      groupId: groupId || null
+      groupId: groupId || null,
     });
   } catch (error) {
     console.error("Upload error:", error);

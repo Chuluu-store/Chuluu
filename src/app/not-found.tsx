@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { FileQuestion, Home, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { FileQuestion, Home, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -16,13 +16,13 @@ export default function NotFound() {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring' }}
+          transition={{ delay: 0.2, type: "spring" }}
           className="relative"
         >
           <div className="w-32 h-32 mx-auto bg-stone-800/50 rounded-full flex items-center justify-center">
             <FileQuestion className="w-16 h-16 text-stone-400" />
           </div>
-          
+
           {/* 404 텍스트 */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -44,7 +44,7 @@ export default function NotFound() {
           >
             페이지를 찾을 수 없습니다
           </motion.h1>
-          
+
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -67,7 +67,7 @@ export default function NotFound() {
           <h3 className="text-sm font-medium text-stone-300">
             이런 페이지는 어떠세요?
           </h3>
-          
+
           <div className="space-y-2">
             <Link href="/">
               <motion.div

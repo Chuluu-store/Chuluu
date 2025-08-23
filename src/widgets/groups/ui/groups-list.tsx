@@ -2,8 +2,9 @@
 
 import React from "react";
 import { Plus } from "lucide-react";
-import { GroupCard, type Group } from "@/entities/group";
-import { CreateGroupCard } from "@/features/create-group";
+
+import { GroupCard, type Group } from "../../../entities/group";
+import { CreateGroupCard } from "../../../features/create-group";
 
 interface GroupsListProps {
   groups: Group[];
@@ -11,7 +12,11 @@ interface GroupsListProps {
   onGroupClick: (group: Group) => void;
 }
 
-export function GroupsList({ groups, onCreateGroup, onGroupClick }: GroupsListProps) {
+export function GroupsList({
+  groups,
+  onCreateGroup,
+  onGroupClick,
+}: GroupsListProps) {
   return (
     <div className="space-y-12">
       <div className="flex justify-between items-center">
@@ -26,14 +31,14 @@ export function GroupsList({ groups, onCreateGroup, onGroupClick }: GroupsListPr
           <span>새 그룹</span>
         </button>
       </div>
-      
+
       <div className="grid gap-8">
         <CreateGroupCard onClick={onCreateGroup} />
         {groups.map((group) => (
-          <GroupCard 
-            key={group.id} 
-            group={group} 
-            onClick={() => onGroupClick(group)} 
+          <GroupCard
+            key={group.id}
+            group={group}
+            onClick={() => onGroupClick(group)}
           />
         ))}
       </div>

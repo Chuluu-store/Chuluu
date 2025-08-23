@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from "mongoose";
+import { Schema, model, models } from "mongoose";
 import { Album } from "./types";
 
 const AlbumSchema = new Schema<Album>({

@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export default function TestUploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
   }, []);
 
@@ -19,31 +19,31 @@ export default function TestUploadPage() {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setResult(null);
-      setError('');
+      setError("");
     }
   };
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(loginForm)
+        body: JSON.stringify(loginForm),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Login failed');
+        throw new Error(errorData.error || "Login failed");
       }
 
       const data = await response.json();
-      localStorage.setItem('token', data.token);
+      localStorage.setItem("token", data.token);
       setIsLoggedIn(true);
-      setError('');
+      setError("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : "Login failed");
     }
   };
 
@@ -51,42 +51,41 @@ export default function TestUploadPage() {
     if (!file) return;
 
     setUploading(true);
-    setError('');
+    setError("");
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error('로그인이 필요합니다');
+        throw new Error("로그인이 필요합니다");
       }
 
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('groupId', '68a1a9c4f11a032be07bd44d'); // 기존 그룹 ID 사용
+      formData.append("file", file);
+      formData.append("groupId", "68a1a9c4f11a032be07bd44d"); // 기존 그룹 ID 사용
 
-      console.log('Starting upload...');
+      console.log("Starting upload...");
 
-      const response = await fetch('/api/test-upload', {
-        method: 'POST',
+      const response = await fetch("/api/test-upload", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: formData
+        body: formData,
       });
 
-      console.log('Upload response:', response.status, response.statusText);
+      console.log("Upload response:", response.status, response.statusText);
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
+        throw new Error(errorData.error || "Upload failed");
       }
 
       const resultData = await response.json();
       setResult(resultData);
-      console.log('Upload result:', resultData);
-
+      console.log("Upload result:", resultData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      console.error('Upload error:', err);
+      setError(err instanceof Error ? err.message : "Unknown error");
+      console.error("Upload error:", err);
     } finally {
       setUploading(false);
     }
@@ -96,7 +95,7 @@ export default function TestUploadPage() {
     <div className="min-h-screen bg-stone-900 p-8">
       <div className="max-w-md mx-auto bg-stone-800 rounded-lg p-6">
         <h1 className="text-2xl font-bold text-white mb-6">테스트 업로드</h1>
-        
+
         {!isLoggedIn ? (
           <div className="space-y-4">
             <h2 className="text-lg text-white mb-4">먼저 로그인하세요</h2>
@@ -105,7 +104,9 @@ export default function TestUploadPage() {
               <input
                 type="email"
                 value={loginForm.email}
-                onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, email: e.target.value })
+                }
                 className="w-full p-2 bg-stone-700 text-white rounded"
                 placeholder="test@example.com"
               />
@@ -115,7 +116,9 @@ export default function TestUploadPage() {
               <input
                 type="password"
                 value={loginForm.password}
-                onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, password: e.target.value })
+                }
                 className="w-full p-2 bg-stone-700 text-white rounded"
                 placeholder="password"
               />
@@ -132,7 +135,7 @@ export default function TestUploadPage() {
             <div className="p-3 bg-green-900/50 border border-green-500 rounded text-green-200 mb-4">
               ✅ 로그인됨
             </div>
-            
+
             <div>
               <label className="block text-stone-300 mb-2">파일 선택</label>
               <input
@@ -155,7 +158,7 @@ export default function TestUploadPage() {
               disabled={!file || uploading}
               className="w-full py-2 bg-stone-600 hover:bg-stone-500 disabled:bg-stone-700 text-white rounded transition-colors"
             >
-              {uploading ? '업로드 중...' : '업로드'}
+              {uploading ? "업로드 중..." : "업로드"}
             </button>
           </div>
         )}

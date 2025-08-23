@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/shared/lib/database";
-import { Media } from "@/entities/media/model/media.model";
 
+import { connectDB } from "../../../shared/lib/database";
+import { Media } from "../../../entities/media/model/media.model";
 
 export async function GET(request: NextRequest) {
   try {

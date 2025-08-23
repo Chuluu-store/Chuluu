@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { LoginForm } from "@/features/auth/ui/login-form";
-import { GroupModal } from "@/features/group/ui/group-modal";
-import { LoginPrompt } from "@/features/auth/ui/login-prompt";
-import { GroupsHero } from "@/widgets/groups/ui/groups-hero";
-import { GroupsList } from "@/widgets/groups/ui/groups-list";
-import { EmptyGroupsState } from "@/widgets/groups/ui/empty-groups-state";
-import { type Group } from "@/entities/group/model/types";
+import { LoginForm } from "../../../features/auth/ui/login-form";
+import { GroupModal } from "../../../features/group/ui/group-modal";
+import { LoginPrompt } from "../../../features/auth/ui/login-prompt";
+import { GroupsHero } from "./groups-hero";
+import { GroupsList } from "./groups-list";
+import { EmptyGroupsState } from "./empty-groups-state";
+import { type Group } from "../../../entities/group/model/types";
 
 export function GroupsPage() {
   const router = useRouter();

@@ -19,7 +19,7 @@ export function LoginPrompt({ onLogin }: LoginPromptProps) {
         <div className="w-20 h-20 mx-auto bg-stone-700 rounded-full flex items-center justify-center mb-6">
           <LogInIcon className="w-10 h-10 text-stone-200" />
         </div>
-        
+
         <div>
           <h2 className="text-3xl font-bold text-white mb-4">
             로그인이 필요합니다
@@ -28,7 +28,7 @@ export function LoginPrompt({ onLogin }: LoginPromptProps) {
             그룹을 생성하고 관리하려면 로그인해주세요
           </p>
         </div>
-        
+
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

@@ -72,7 +72,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   const [filters, setFilters] = useState({
     sortBy: 'takenAt' as 'takenAt' | 'uploadedAt',
     order: 'desc' as 'desc' | 'asc',
-    mediaType: undefined as 'image' | 'video' | undefined,
+    mediaType: 'all' as 'image' | 'video' | 'all',
     cameraMake: undefined as string | undefined
   });
   const [cameraOptions, setCameraOptions] = useState<string[]>([]);
@@ -94,7 +94,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
         limit: '200'
       });
       
-      if (filters.mediaType) {
+      if (filters.mediaType && filters.mediaType !== 'all') {
         params.append('type', filters.mediaType);
       }
 
@@ -329,7 +329,11 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       {/* 필터 바 */}
       <GalleryFilter 
         filters={filters}
-        onFilterChange={setFilters}
+        onFilterChange={(newFilters) => setFilters({
+          ...newFilters,
+          mediaType: newFilters.mediaType || 'all',
+          cameraMake: newFilters.cameraMake || undefined
+        })}
         cameraOptions={cameraOptions}
       />
 

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Users, Calendar, Image as ImageIcon } from "lucide-react";
-import { PhotoGallery } from "@/features/gallery/ui/photo-gallery";
-import { BulkUpload } from "@/features/upload/ui/bulk-upload";
-import { type Group } from "@/entities/group/model/types";
+
+import { PhotoGallery } from "../../../features/gallery/ui/photo-gallery";
+import { BulkUpload } from "../../../features/upload/ui/bulk-upload";
+import { type Group } from "../../../entities/group/model/types";
 
 interface GroupDetailPageProps {
   group: Group;
@@ -13,11 +14,11 @@ interface GroupDetailPageProps {
 }
 
 export function GroupDetailPage({ group, onBack }: GroupDetailPageProps) {
-  const [activeTab, setActiveTab] = useState<'gallery' | 'upload'>('gallery');
+  const [activeTab, setActiveTab] = useState<"gallery" | "upload">("gallery");
 
   const handleUploadComplete = () => {
     // 업로드 완료 후 갤러리 탭으로 이동 (갤러리 컴포넌트가 자체적으로 데이터를 새로고침함)
-    setActiveTab('gallery');
+    setActiveTab("gallery");
   };
 
   return (
@@ -43,9 +44,7 @@ export function GroupDetailPage({ group, onBack }: GroupDetailPageProps) {
                 {group.name}
               </h1>
               {group.description && (
-                <p className="text-stone-400 text-sm">
-                  {group.description}
-                </p>
+                <p className="text-stone-400 text-sm">{group.description}</p>
               )}
             </div>
           </div>
@@ -65,9 +64,7 @@ export function GroupDetailPage({ group, onBack }: GroupDetailPageProps) {
               </div>
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4" />
-                <span>
-                  {new Date(group.createdAt).toLocaleDateString()}
-                </span>
+                <span>{new Date(group.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
@@ -80,35 +77,35 @@ export function GroupDetailPage({ group, onBack }: GroupDetailPageProps) {
                 layoutId="groupDetailActiveTab"
                 className="absolute top-0 bottom-0 bg-stone-700 rounded-xl"
                 style={{
-                  width: 'calc(50% - 2px)',
+                  width: "calc(50% - 2px)",
                 }}
                 initial={false}
                 animate={{
-                  x: activeTab === 'upload' ? 'calc(100% + 4px)' : '0%'
+                  x: activeTab === "upload" ? "calc(100% + 4px)" : "0%",
                 }}
                 transition={{
                   type: "spring",
                   stiffness: 400,
                   damping: 40,
-                  mass: 1
+                  mass: 1,
                 }}
               />
-              
+
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setActiveTab('gallery')}
+                onClick={() => setActiveTab("gallery")}
                 className={`relative z-10 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  activeTab === 'gallery' ? 'text-white' : 'text-stone-400'
+                  activeTab === "gallery" ? "text-white" : "text-stone-400"
                 }`}
               >
                 갤러리
               </motion.button>
-              
+
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setActiveTab('upload')}
+                onClick={() => setActiveTab("upload")}
                 className={`relative z-10 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  activeTab === 'upload' ? 'text-white' : 'text-stone-400'
+                  activeTab === "upload" ? "text-white" : "text-stone-400"
                 }`}
               >
                 업로드
@@ -123,7 +120,7 @@ export function GroupDetailPage({ group, onBack }: GroupDetailPageProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            {activeTab === 'gallery' ? (
+            {activeTab === "gallery" ? (
               <PhotoGallery groupId={group.id} />
             ) : (
               <BulkUpload

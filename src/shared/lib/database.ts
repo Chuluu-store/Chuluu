@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 import { env } from "../config";
 
 if (!env.MONGODB_URI) {

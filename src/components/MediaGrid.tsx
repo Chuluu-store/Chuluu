@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface MediaItem {
   _id: string;
@@ -33,17 +33,17 @@ export default function MediaGrid() {
     try {
       const response = await fetch(`/api/media?page=${page}&limit=20`);
       const data = await response.json();
-      
+
       if (page === 1) {
         setMedia(data.media);
       } else {
-        setMedia(prev => [...prev, ...data.media]);
+        setMedia((prev) => [...prev, ...data.media]);
       }
-      
+
       setHasMore(page < data.pagination.pages);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching media:', error);
+      console.error("Error fetching media:", error);
       setLoading(false);
     }
   };
@@ -58,7 +58,7 @@ export default function MediaGrid() {
 
   const loadMore = () => {
     if (hasMore && !loading) {
-      setPage(prev => prev + 1);
+      setPage((prev) => prev + 1);
     }
   };
 
@@ -80,7 +80,11 @@ export default function MediaGrid() {
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-black/50 rounded-full p-3">
-                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
@@ -117,7 +121,7 @@ export default function MediaGrid() {
       )}
 
       {selectedMedia && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
           onClick={closeModal}
         >
@@ -125,12 +129,25 @@ export default function MediaGrid() {
             className="absolute top-4 right-4 text-white/80 hover:text-white z-50"
             onClick={closeModal}
           >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
-          
-          <div className="relative max-w-full max-h-full" onClick={(e) => e.stopPropagation()}>
+
+          <div
+            className="relative max-w-full max-h-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             {selectedMedia.isVideo ? (
               <video
                 src={selectedMedia.path}

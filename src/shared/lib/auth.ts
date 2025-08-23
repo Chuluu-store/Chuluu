@@ -7,6 +7,10 @@ export interface TokenPayload {
   username: string;
 }
 
+export function signToken(payload: TokenPayload): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+}
+
 export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;

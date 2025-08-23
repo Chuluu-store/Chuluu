@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { AlertCircle, RefreshCcw, Home } from 'lucide-react';
+import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { AlertCircle, RefreshCcw, Home } from "lucide-react";
 
 export default function GlobalError({
   error,
@@ -12,7 +12,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Global error:', error);
+    console.error("Global error:", error);
   }, [error]);
 
   return (
@@ -28,7 +28,7 @@ export default function GlobalError({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring' }}
+              transition={{ delay: 0.2, type: "spring" }}
               className="w-28 h-28 mx-auto bg-red-600/20 rounded-full flex items-center justify-center"
             >
               <div className="w-24 h-24 bg-red-600/30 rounded-full flex items-center justify-center">
@@ -46,7 +46,7 @@ export default function GlobalError({
               >
                 심각한 오류
               </motion.h1>
-              
+
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -59,7 +59,7 @@ export default function GlobalError({
               </motion.p>
 
               {/* 개발 환경에서만 에러 상세 정보 표시 */}
-              {process.env.NODE_ENV === 'development' && (
+              {process.env.NODE_ENV === "development" && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -102,7 +102,7 @@ export default function GlobalError({
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => (window.location.href = "/")}
                   className="flex-1 flex items-center justify-center gap-2 py-4 bg-stone-700 hover:bg-stone-600 text-white font-semibold rounded-xl transition-all duration-200"
                 >
                   <Home className="w-5 h-5" />

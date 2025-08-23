@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient, ApiResponse } from "../../../shared/api";
+
 import { QUERY_KEYS } from "../../../shared/config";
+import { apiClient, ApiResponse } from "../../../shared/api";
 import { Album, AlbumCreate, AlbumUpdate, SharedAlbum } from "../model";
 
 export function useAlbumList() {
@@ -86,7 +87,9 @@ export function useUpdateAlbum() {
     },
     onSuccess: (album) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.albums.list() });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.albums.detail(album.id) });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.albums.detail(album.id),
+      });
     },
   });
 }
@@ -118,7 +121,9 @@ export function useGenerateShareToken() {
       return response.data.shareToken;
     },
     onSuccess: (_, albumId) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.albums.detail(albumId) });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.albums.detail(albumId),
+      });
     },
   });
 }

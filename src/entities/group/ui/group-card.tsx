@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Users, Calendar, Image as ImageIcon } from "lucide-react";
+
 import { Group } from "../model/types";
 
 interface GroupCardProps {
@@ -33,7 +34,7 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
           <Users className="w-6 sm:w-7 h-6 sm:h-7 text-stone-300" />
         </div>
       </div>
-      
+
       <div className="flex items-center justify-between text-sm sm:text-base text-stone-400">
         <div className="flex items-center space-x-4 sm:space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2 sm:space-x-3">

@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
 import Link from "next/link";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { useAlbumList } from "../../../entities/album";
-import { ShareAlbumModal } from "../../../features/share-album";
-import { LoadingSpinner } from "../../../shared/ui";
+
 import { ROUTES } from "../../../shared/config";
 import { formatDate } from "../../../shared/lib";
+import { LoadingSpinner } from "../../../shared/ui";
+import { useAlbumList } from "../../../entities/album";
+import { ShareAlbumModal } from "../../../features/share-album";
 
 interface AlbumListProps {
   currentAlbumId?: string;
@@ -27,7 +28,7 @@ export function AlbumList({ currentAlbumId, className }: AlbumListProps) {
   });
 
   const { data: albums = [], isLoading, error } = useAlbumList();
-  
+
   // Type assertion for albums since useQuery returns unknown
   const typedAlbums = albums as Array<{
     id: string;

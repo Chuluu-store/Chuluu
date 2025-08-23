@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+
 import { Album } from "./types";
 
 interface AlbumState {

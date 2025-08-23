@@ -164,7 +164,7 @@ export function BulkUpload({ groupId, onUploadComplete, onClose }: BulkUploadPro
       formData.append('file', uploadFile.file);
       formData.append('groupId', groupId);
 
-      const response = await fetch('/api/test-upload', {
+      const response = await fetch('/api/upload/direct', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
