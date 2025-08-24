@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { FolderOpen } from "lucide-react";
 
 interface MediaItem {
   _id: string;
@@ -17,13 +19,17 @@ interface MediaItem {
     height?: number;
     dateTaken?: string;
   };
+  group?: {
+    _id: string;
+    name: string;
+  };
 }
 
 export function MediaGridWidget() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     fetchMedia();
@@ -31,7 +37,12 @@ export function MediaGridWidget() {
 
   const fetchMedia = async () => {
     try {
-      const response = await fetch("/api/media?page=1&limit=50");
+      const token = localStorage.getItem('token');
+      const response = await fetch("/api/media?limit=10", {
+        headers: token ? {
+          'Authorization': `Bearer ${token}`
+        } : {}
+      });
       const data = await response.json();
 
       if (data.media) {
@@ -50,48 +61,6 @@ export function MediaGridWidget() {
 
   const closeModal = () => {
     setSelectedMedia(null);
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    setUploading(true);
-
-    try {
-      const formData = new FormData();
-      
-      // 모든 선택된 파일을 FormData에 추가
-      Array.from(files).forEach((file) => {
-        formData.append('files', file);
-      });
-
-      const response = await fetch('/api/media/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('업로드에 실패했습니다');
-      }
-
-      const result = await response.json();
-      
-      // 성공 시 미디어 목록 새로고침
-      await fetchMedia();
-      
-      // 파일 입력 초기화
-      event.target.value = '';
-      
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('파일 업로드 중 오류가 발생했습니다');
-    } finally {
-      setUploading(false);
-    }
   };
 
   if (loading) {
@@ -155,46 +124,30 @@ export function MediaGridWidget() {
         </div>
 
         {media.length === 0 && (
-          <div 
-            className={`flex items-center bg-white/[0.04] border border-white/[0.1] rounded-2xl p-4 cursor-pointer hover:bg-white/[0.08] hover:border-white/25 transition-all ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={() => !uploading && document.getElementById('photo-upload')?.click()}
-          >
-            <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-white/[0.05] rounded-xl mr-4">
-              {uploading ? (
-                <div className="w-5 h-5 border-2 border-gray-400 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <svg
-                  className="w-6 h-6 text-gray-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-              )}
+          <div className="text-center py-12">
+            <div className="inline-flex w-16 h-16 items-center justify-center bg-stone-800/50 rounded-2xl mb-4">
+              <svg
+                className="w-8 h-8 text-stone-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
             </div>
-            <div className="flex-1">
-              <h3 className="text-base font-medium text-white mb-1">
-                {uploading ? '업로드 중...' : '사진 업로드'}
-              </h3>
-              <p className="text-sm text-gray-400">
-                {uploading ? '파일을 업로드하고 있습니다' : '사진을 선택하여 그룹에 업로드하세요'}
-              </p>
-            </div>
-            <input
-              id="photo-upload"
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              className="hidden"
-              onChange={handleFileUpload}
-              disabled={uploading}
-            />
+            <h3 className="text-lg font-semibold text-white mb-2">
+              아직 업로드한 사진이 없네요
+            </h3>
+            <p className="text-sm text-stone-400 max-w-sm mx-auto">
+              그룹을 만들고 사진을 업로드해보세요.
+              <br />
+              소중한 추억을 공유할 수 있습니다.
+            </p>
           </div>
         )}
       </div>
@@ -206,15 +159,13 @@ export function MediaGridWidget() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 glass flex items-center justify-center p-6"
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
             onClick={closeModal}
           >
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="absolute top-8 right-8 glass-button p-4 rounded-2xl z-50 safe-top"
+            {/* X 버튼 */}
+            <button
               onClick={closeModal}
+              className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
             >
               <svg
                 className="w-6 h-6 text-white"
@@ -229,44 +180,71 @@ export function MediaGridWidget() {
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
-            </motion.button>
+            </button>
 
+            {/* 미디어 컨텐츠 */}
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="relative max-w-full max-h-full glass-card rounded-3xl overflow-hidden"
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center p-4"
               onClick={(e) => e.stopPropagation()}
             >
-              {selectedMedia.isVideo ? (
-                <video
-                  src={selectedMedia.path}
-                  controls
-                  autoPlay
-                  className="max-w-full max-h-[80vh] rounded-3xl"
-                />
-              ) : (
-                <Image
-                  src={selectedMedia.path}
-                  alt={selectedMedia.originalName}
-                  width={selectedMedia.metadata?.width || 1920}
-                  height={selectedMedia.metadata?.height || 1080}
-                  className="max-w-full max-h-[80vh] object-contain rounded-3xl"
-                />
-              )}
+              <div className="relative">
+                {selectedMedia.isVideo ? (
+                  <video
+                    src={selectedMedia.path}
+                    controls
+                    autoPlay
+                    className="max-w-full max-h-[70vh] rounded-xl"
+                  />
+                ) : (
+                  <Image
+                    src={selectedMedia.path}
+                    alt={selectedMedia.originalName}
+                    width={selectedMedia.metadata?.width || 800}
+                    height={selectedMedia.metadata?.height || 600}
+                    className="max-w-full max-h-[70vh] object-contain"
+                  />
+                )}
 
-              {/* Media Info */}
-              <div className="absolute bottom-0 left-0 right-0 glass p-6 m-4 rounded-2xl">
-                <h3 className="text-white font-medium mb-1">
-                  {selectedMedia.originalName}
-                </h3>
-                <p className="text-gray-300 text-sm">
-                  {selectedMedia.metadata?.dateTaken
-                    ? new Date(
-                        selectedMedia.metadata.dateTaken
-                      ).toLocaleDateString()
-                    : new Date(selectedMedia.uploadedAt).toLocaleDateString()}
-                </p>
+                {/* Media Info */}
+                <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-sm rounded-xl p-4 text-white">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg mb-1">
+                        {selectedMedia.originalName}
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm text-white/80">
+                        <span>
+                          {selectedMedia.metadata?.dateTaken
+                            ? new Date(selectedMedia.metadata.dateTaken).toLocaleString('ko-KR')
+                            : new Date(selectedMedia.uploadedAt).toLocaleString('ko-KR')}
+                        </span>
+                        {selectedMedia.group && (
+                          <span className="text-white/60">
+                            {selectedMedia.group.name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {selectedMedia.group && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/group/${selectedMedia.group?._id}`);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-lg transition-all duration-200 whitespace-nowrap"
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                        <span className="text-sm font-medium">앨범으로 이동</span>
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
               </div>
             </motion.div>
           </motion.div>

@@ -140,20 +140,9 @@ export async function POST(request: NextRequest) {
     // EXIF 데이터 추출
     let metadata = {};
     try {
-      if (file.type.startsWith("image/")) {
-        metadata =
-          (await ExifReader.parse(filePath, {
-            pick: [
-              "DateTimeOriginal",
-              "CreateDate",
-              "DateTime",
-              "Make",
-              "Model",
-              "GPS",
-            ],
-            translateKeys: false,
-          })) || {};
-        console.log("📸 EXIF extracted:", Object.keys(metadata));
+      if (file.type.startsWith("image/") || file.name.toLowerCase().endsWith('.heic')) {
+        metadata = await ExifReader.parse(filePath) || {};
+        console.log("📸 EXIF extracted:", JSON.stringify(metadata, null, 2).substring(0, 500));
       }
     } catch (error) {
       console.warn("⚠️ EXIF extraction failed:", error);
@@ -208,19 +197,19 @@ export async function POST(request: NextRequest) {
       uploadedBy: decoded.userId,
       status: "completed",  // status 필드 추가
       metadata: {
-        width: (metadata as any).ImageWidth || (metadata as any).PixelXDimension || null,
-        height: (metadata as any).ImageLength || (metadata as any).PixelYDimension || null,
-        cameraMake: (metadata as any).Make || null,
-        cameraModel: (metadata as any).Model || null,
-        takenAt: (metadata as any).DateTimeOriginal || (metadata as any).CreateDate || null,
-        iso: (metadata as any).ISO || null,
-        fNumber: (metadata as any).FNumber || null,
+        width: (metadata as any).ImageWidth || (metadata as any).PixelXDimension || (metadata as any)['Image Width'] || null,
+        height: (metadata as any).ImageLength || (metadata as any).PixelYDimension || (metadata as any)['Image Height'] || null,
+        cameraMake: (metadata as any).Make || (metadata as any)['271'] || null,
+        cameraModel: (metadata as any).Model || (metadata as any)['272'] || null,
+        takenAt: (metadata as any).DateTimeOriginal || (metadata as any)['36867'] || (metadata as any).CreateDate || (metadata as any)['36868'] || null,
+        iso: (metadata as any).ISO || (metadata as any).ISOSpeedRatings || null,
+        fNumber: (metadata as any).FNumber || (metadata as any).ApertureValue || null,
         exposureTime: (metadata as any).ExposureTime || null,
         focalLength: (metadata as any).FocalLength || null,
-        location: (metadata as any).GPS
+        location: (metadata as any).GPS || (metadata as any).GPSLatitude
           ? {
-              latitude: (metadata as any).GPS.latitude || null,
-              longitude: (metadata as any).GPS.longitude || null,
+              latitude: (metadata as any).GPS?.latitude || (metadata as any).GPSLatitude || null,
+              longitude: (metadata as any).GPS?.longitude || (metadata as any).GPSLongitude || null,
             }
           : null,
         exif: metadata,

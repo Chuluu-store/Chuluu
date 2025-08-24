@@ -115,10 +115,10 @@ export function HomeContent({
                 <div className="mt-12">
                   <div className="text-center mb-8">
                     <h3 className="text-xl font-semibold text-white mb-2">
-                      최근 업로드
+                      내가 최근 업로드한 사진
                     </h3>
                     <p className="text-stone-400">
-                      최근에 업로드된 사진과 동영상을 확인하세요
+                      최근에 올린 사진들을 한눈에 확인하세요
                     </p>
                   </div>
                   <MediaGridWidget />
