@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "../../../shared/lib/auth";
+import { verifyToken } from "../../../shared/lib/auth";
 import { connectDB } from "../../../shared/lib/database";
 import { Media } from "../../../entities/media/model/media.model";
 
@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
     
     if (token) {
       try {
-        const decoded = await verifyAuth(token);
-        userId = decoded.userId;
+        const decoded = await verifyToken(token);
+        userId = decoded?.userId;
       } catch (error) {
         // 토큰 검증 실패 시 userId는 null로 유지
       }
