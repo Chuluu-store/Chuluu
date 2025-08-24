@@ -53,7 +53,10 @@ export async function GET(
     // TODO: 보안 강화 - 서명된 URL 또는 임시 토큰 사용
 
     // 실제 파일 경로 계산 (상대 경로를 절대 경로로 변환)
-    const uploadBase = env.UPLOAD_PATH || "/tmp/uploads";
+    const uploadBase = env.UPLOAD_PATH?.startsWith("./") 
+      ? path.join(process.cwd(), env.UPLOAD_PATH.slice(2))
+      : env.UPLOAD_PATH || "/tmp/uploads";
+      
     const actualFilePath = media.path.startsWith("/uploads/")
       ? path.join(uploadBase, media.path.replace("/uploads/", ""))
       : media.path.startsWith("/home/pi/")

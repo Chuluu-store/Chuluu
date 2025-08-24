@@ -101,4 +101,4 @@ MediaSchema.index({ status: 1 });
 
 export const Media =
   mongoose.models.Media ||
-  mongoose.model<IMedia>("Media", MediaSchema, "media_items");
+  mongoose.model<IMedia>("Media", MediaSchema, "photo_media");

@@ -30,44 +30,61 @@ export function UploadStats({
   return (
     <div className="bg-stone-900/30 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-6 space-y-6">
       {/* 통계 섹션 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-3 gap-3 md:gap-4">
+        {/* 파일 통계 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-stone-800/60 backdrop-blur-sm border border-stone-700/40 rounded-2xl p-4 text-center group hover:bg-stone-800/80 transition-all duration-300"
         >
-          <div className="text-2xl md:text-3xl font-bold text-white mb-1">{stats.total}</div>
-          <div className="text-xs text-stone-400 font-medium">총 파일</div>
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="text-3xl md:text-4xl font-bold text-white mb-2">{stats.total}</div>
+            <div className="text-xs text-stone-400 font-medium uppercase tracking-wider">총 파일</div>
+          </div>
         </motion.div>
         
+        {/* 완료/실패 통계 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
           className="bg-stone-800/60 backdrop-blur-sm border border-stone-700/40 rounded-2xl p-4 text-center group hover:bg-stone-800/80 transition-all duration-300"
         >
-          <div className="text-2xl md:text-3xl font-bold text-green-400 mb-1">{stats.completed}</div>
-          <div className="text-xs text-stone-400 font-medium">완료</div>
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="flex flex-col items-center">
+                <div className="text-3xl md:text-4xl font-bold text-green-400">{stats.completed}</div>
+                <span className="text-xs text-stone-400 font-medium uppercase tracking-wider mt-1">완료</span>
+              </div>
+              <div className="text-stone-500 text-xl font-light self-start mt-2">/</div>
+              <div className="flex flex-col items-center">
+                <div className="text-3xl md:text-4xl font-bold text-red-400">{stats.failed}</div>
+                <span className="text-xs text-stone-400 font-medium uppercase tracking-wider mt-1">실패</span>
+              </div>
+            </div>
+          </div>
         </motion.div>
         
+        {/* 총 용량 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
           className="bg-stone-800/60 backdrop-blur-sm border border-stone-700/40 rounded-2xl p-4 text-center group hover:bg-stone-800/80 transition-all duration-300"
         >
-          <div className="text-2xl md:text-3xl font-bold text-red-400 mb-1">{stats.failed}</div>
-          <div className="text-xs text-stone-400 font-medium">실패</div>
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-stone-800/60 backdrop-blur-sm border border-stone-700/40 rounded-2xl p-4 text-center group hover:bg-stone-800/80 transition-all duration-300"
-        >
-          <div className="text-lg md:text-xl font-bold text-white mb-1">{formatFileSize(stats.totalSize)}</div>
-          <div className="text-xs text-stone-400 font-medium">총 용량</div>
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="mb-2">
+              <div className="text-lg md:text-xl font-bold text-white whitespace-nowrap">
+                {(() => {
+                  const [num, unit] = formatFileSize(stats.totalSize).split(' ');
+                  // 숫자가 너무 길면 소수점 조정
+                  const formattedNum = parseFloat(num).toFixed(num.length > 5 ? 1 : 2);
+                  return `${formattedNum} ${unit || 'B'}`;
+                })()}
+              </div>
+            </div>
+            <div className="text-xs text-stone-400 font-medium uppercase tracking-wider">총 용량</div>
+          </div>
         </motion.div>
       </div>
 

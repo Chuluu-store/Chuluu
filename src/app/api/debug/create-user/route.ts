@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
+
 import { connectDB } from "../../../../shared/lib/database";
 import { User } from "../../../../entities/user/model/user.model";
 import { Group } from "../../../../entities/group/model/group.model";
-import mongoose from "mongoose";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: "사용자가 이미 존재합니다",
-        user: existingUser
+        user: existingUser,
       });
     }
 
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
       username,
       email,
       password: "$2b$10$dummy.hash.for.now", // Dummy hash
-      groups: []
+      groups: [],
     });
 
     await newUser.save();
@@ -44,11 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Find all orphaned groups and assign to this user
     const orphanedGroups = await Group.find({
-      $or: [
-        { owner: null },
-        { owner: userId },
-        { members: { $size: 0 } }
-      ]
+      $or: [{ owner: null }, { owner: userId }, { members: { $size: 0 } }],
     });
 
     console.log(`Found ${orphanedGroups.length} orphaned groups`);
@@ -62,13 +59,10 @@ export async function POST(request: NextRequest) {
 
     // Update user's groups array
     const userGroups = await Group.find({
-      $or: [
-        { owner: userId },
-        { members: userId }
-      ]
+      $or: [{ owner: userId }, { members: userId }],
     }).select("_id");
 
-    newUser.groups = userGroups.map(g => g._id);
+    newUser.groups = userGroups.map((g) => g._id);
     await newUser.save();
 
     return NextResponse.json({
@@ -78,9 +72,9 @@ export async function POST(request: NextRequest) {
         id: newUser._id,
         username: newUser.username,
         email: newUser.email,
-        groupCount: userGroups.length
+        groupCount: userGroups.length,
       },
-      fixedGroups: orphanedGroups.length
+      fixedGroups: orphanedGroups.length,
     });
   } catch (error) {
     console.error("Create user error:", error);

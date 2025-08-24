@@ -35,7 +35,7 @@ export function BulkUpload({ groupId, onUploadComplete, onClose }: BulkUploadPro
       }
       
       if (!isValidFileSize(file)) {
-        errors.push(`${file.name}: 파일 크기가 500MB를 초과합니다`);
+        errors.push(`${file.name}: 파일 크기가 10GB를 초과합니다`);
         return;
       }
 
@@ -210,6 +210,22 @@ export function BulkUpload({ groupId, onUploadComplete, onClose }: BulkUploadPro
     setIsPaused(false);
   };
 
+  // 실패한 파일 재시도
+  const retryFailedFile = async (fileId: string) => {
+    const failedFile = files.find(f => f.id === fileId && f.status === 'failed');
+    if (!failedFile) return;
+
+    console.log(`🔄 Retrying failed file:`, failedFile.file.name);
+    
+    // 상태를 pending으로 변경
+    setFiles(prev => prev.map(f => 
+      f.id === fileId ? { ...f, status: 'pending', error: undefined, progress: 0 } : f
+    ));
+
+    // 다시 업로드 시도
+    await uploadFileDirect(failedFile);
+  };
+
   // 전체 진행률 계산
   const overallProgress = uploadStats.total > 0 
     ? Math.round(((uploadStats.completed + uploadStats.failed) / uploadStats.total) * 100)
@@ -269,6 +285,7 @@ export function BulkUpload({ groupId, onUploadComplete, onClose }: BulkUploadPro
         files={files}
         isUploading={isUploading}
         onRemoveFile={removeFile}
+        onRetryFile={retryFailedFile}
       />
     </div>
   );

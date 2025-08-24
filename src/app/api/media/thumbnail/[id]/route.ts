@@ -52,7 +52,10 @@ export async function GET(
     // TODO: 보안 강화 필요
 
     // 실제 파일 경로 계산
-    const uploadBase = env.UPLOAD_PATH || "/tmp/uploads";
+    const uploadBase = env.UPLOAD_PATH?.startsWith("./") 
+      ? path.join(process.cwd(), env.UPLOAD_PATH.slice(2))
+      : env.UPLOAD_PATH || "/tmp/uploads";
+      
     const actualThumbnailPath = media.thumbnailPath?.startsWith("/uploads/")
       ? path.join(uploadBase, media.thumbnailPath.replace("/uploads/", ""))
       : media.thumbnailPath?.startsWith("/home/pi/")

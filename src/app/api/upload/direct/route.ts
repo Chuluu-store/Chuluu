@@ -159,23 +159,7 @@ export async function POST(request: NextRequest) {
       console.warn("⚠️ EXIF extraction failed:", error);
     }
 
-    // 촬영 날짜 추출 (EXIF 우선, 파일명에서 추출, 현재 시간 순)
-    let takenAt = new Date();
-
-    if ((metadata as any).DateTimeOriginal) {
-      takenAt = new Date((metadata as any).DateTimeOriginal);
-    } else if ((metadata as any).CreateDate) {
-      takenAt = new Date((metadata as any).CreateDate);
-    } else if ((metadata as any).DateTime) {
-      takenAt = new Date((metadata as any).DateTime);
-    } else {
-      // 파일명에서 날짜 추출 시도
-      const dateMatch = originalName.match(/(\d{4})[_-]?(\d{2})[_-]?(\d{2})/);
-      if (dateMatch) {
-        const [, year, month, day] = dateMatch;
-        takenAt = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      }
-    }
+    // 촬영 날짜는 이제 metadata에서 직접 처리
 
     // 썸네일 생성
     let thumbnailPath = null;
@@ -222,16 +206,21 @@ export async function POST(request: NextRequest) {
       size: file.size,
       groupId,
       uploadedBy: decoded.userId,
+      status: "completed",  // status 필드 추가
       metadata: {
-        width: (metadata as any).ImageWidth || null,
-        height: (metadata as any).ImageLength || null,
-        make: (metadata as any).Make || null,
-        model: (metadata as any).Model || null,
-        takenAt,
-        gps: (metadata as any).GPS
+        width: (metadata as any).ImageWidth || (metadata as any).PixelXDimension || null,
+        height: (metadata as any).ImageLength || (metadata as any).PixelYDimension || null,
+        cameraMake: (metadata as any).Make || null,
+        cameraModel: (metadata as any).Model || null,
+        takenAt: (metadata as any).DateTimeOriginal || (metadata as any).CreateDate || null,
+        iso: (metadata as any).ISO || null,
+        fNumber: (metadata as any).FNumber || null,
+        exposureTime: (metadata as any).ExposureTime || null,
+        focalLength: (metadata as any).FocalLength || null,
+        location: (metadata as any).GPS
           ? {
-              latitude: (metadata as any).GPS.GPSLatitude,
-              longitude: (metadata as any).GPS.GPSLongitude,
+              latitude: (metadata as any).GPS.latitude || null,
+              longitude: (metadata as any).GPS.longitude || null,
             }
           : null,
         exif: metadata,

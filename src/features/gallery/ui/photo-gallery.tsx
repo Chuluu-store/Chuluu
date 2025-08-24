@@ -36,13 +36,19 @@ interface MediaItem {
     email: string;
   };
   uploadedAt: string;
+  createdAt?: string;  // 업로드 날짜
   takenAt: string;
   metadata: {
     width?: number;
     height?: number;
     duration?: number;
+    takenAt?: string;  // 메타데이터에서 촬영 날짜
     cameraMake?: string;
     cameraModel?: string;
+    iso?: number;
+    fNumber?: number;
+    exposureTime?: string;
+    focalLength?: number;
     location?: {
       latitude: number;
       longitude: number;
@@ -79,6 +85,10 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   const [cameraOptions, setCameraOptions] = useState<string[]>([]);
   const [deletingMedia, setDeletingMedia] = useState<string | null>(null);
   const [mediaCounts, setMediaCounts] = useState({ images: 0, videos: 0 });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [mediaToDelete, setMediaToDelete] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // 미디어 데이터 로드
@@ -149,6 +159,12 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   useEffect(() => {
     loadMedia();
   }, [loadMedia]);
+
+  // 토스트 표시
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // 미디어 클릭 핸들러
   const handleMediaClick = (media: MediaItem) => {
@@ -232,16 +248,79 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
     }
   };
 
-  // 미디어 삭제
-  const handleDeleteMedia = async (mediaId: string) => {
-    if (!confirm('이 미디어를 삭제하시겠습니까?')) return;
+  // 미디어 다운로드
+  const handleDownloadMedia = async (media: MediaItem) => {
+    try {
+      showToast('다운로드 중...', 'success');
+      const response = await fetch(getOriginalUrl(media));
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = media.originalName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showToast('다운로드가 완료되었습니다', 'success');
+    } catch (error) {
+      console.error('다운로드 실패:', error);
+      showToast('다운로드에 실패했습니다', 'error');
+    }
+  };
+
+  // 미디어 공유
+  const handleShareMedia = async (media: MediaItem) => {
+    if (isSharing) return; // 이미 공유 중이면 무시
     
     try {
-      setDeletingMedia(mediaId);
+      setIsSharing(true);
+      const shareUrl = `${window.location.origin}/api/media/file/${media.id}`;
+      
+      // 모바일에서 네이티브 공유 지원
+      if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+        try {
+          await navigator.share({
+            title: media.originalName,
+            text: `${media.originalName} 공유`,
+            url: shareUrl
+          });
+          showToast('공유가 완료되었습니다', 'success');
+        } catch (err: any) {
+          // 사용자가 공유를 취소한 경우
+          if (err.name !== 'AbortError') {
+            throw err;
+          }
+        }
+      } else {
+        // 데스크톱에서는 클립보드에 복사
+        await navigator.clipboard.writeText(shareUrl);
+        showToast('링크가 클립보드에 복사되었습니다!', 'success');
+      }
+    } catch (error) {
+      console.error('공유 실패:', error);
+      showToast('공유에 실패했습니다', 'error');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  // 삭제 모달 표시
+  const showDeleteConfirm = (mediaId: string) => {
+    setMediaToDelete(mediaId);
+    setShowDeleteModal(true);
+  };
+
+  // 미디어 삭제
+  const handleDeleteMedia = async () => {
+    if (!mediaToDelete) return;
+    
+    try {
+      setDeletingMedia(mediaToDelete);
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`/api/media/${mediaId}`, {
+      const response = await fetch(`/api/media/${mediaToDelete}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -255,11 +334,14 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       // 삭제 성공 시 갤러리 새로고침
       closeModal();
       loadMedia();
+      showToast('미디어가 삭제되었습니다', 'success');
     } catch (error) {
       console.error('미디어 삭제 오류:', error);
-      alert('미디어 삭제 중 오류가 발생했습니다.');
+      showToast('미디어 삭제에 실패했습니다', 'error');
     } finally {
       setDeletingMedia(null);
+      setShowDeleteModal(false);
+      setMediaToDelete(null);
     }
   };
 
@@ -274,11 +356,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
 
   // 썸네일 URL 생성
   const getThumbnailUrl = (media: MediaItem) => {
-    // 썸네일 경로가 있으면 직접 사용 (Nginx가 서빙)
-    if (media.thumbnailPath) {
-      return media.thumbnailPath;
-    }
-    // 썸네일이 없으면 API를 통해 생성
+    // 항상 API를 통해 썸네일 가져오기 (캐싱 및 권한 처리)
     if (media.mimeType.startsWith('image/')) {
       return `/api/media/thumbnail/${media.id}`;
     }
@@ -287,11 +365,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   
   // 원본 파일 URL 생성
   const getOriginalUrl = (media: MediaItem) => {
-    // 파일 경로가 있으면 직접 사용 (Nginx가 서빙)
-    if (media.path && media.path.startsWith('/uploads/')) {
-      return media.path;
-    }
-    // fallback으로 API 사용
+    // 항상 API를 통해 파일 가져오기 (권한 처리 및 경로 호환성)
     return `/api/media/file/${media.id}`;
   };
 
@@ -530,55 +604,105 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
               {/* 메타데이터 패널 */}
               <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-sm rounded-xl p-4 text-white">
                 <div className="flex items-start justify-between">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <h3 className="font-semibold text-lg">{selectedMedia.originalName}</h3>
                     
-                    <div className="flex items-center gap-4 text-sm text-white/80">
-                      <div className="flex items-center gap-1">
-                        <User className="w-4 h-4" />
-                        <span>{selectedMedia.uploadedBy.username}</span>
+                    {/* 주요 정보 */}
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-white/60" />
+                        <span className="text-white/80">업로더: {selectedMedia.uploadedBy.username}</span>
                       </div>
                       
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>
-                          {new Date(selectedMedia.takenAt).toLocaleString('ko-KR')}
-                        </span>
-                      </div>
+                      {selectedMedia.metadata?.takenAt ? (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-white/60" />
+                          <span className="text-white/80">
+                            촬영: {new Date(selectedMedia.metadata.takenAt).toLocaleString('ko-KR')}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-white/60" />
+                          <span className="text-white/60 italic">
+                            촬영: 정보 없음
+                          </span>
+                        </div>
+                      )}
                       
-                      {selectedMedia.metadata.cameraMake && (
-                        <div className="flex items-center gap-1">
-                          <Camera className="w-4 h-4" />
-                          <span>
-                            {selectedMedia.metadata.cameraMake} {selectedMedia.metadata.cameraModel}
+                      {(selectedMedia.createdAt || selectedMedia.uploadedAt) && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-white/60" />
+                          <span className="text-white/80">
+                            업로드: {new Date(selectedMedia.createdAt || selectedMedia.uploadedAt).toLocaleString('ko-KR')}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {(selectedMedia.metadata.cameraMake || selectedMedia.metadata.cameraModel) && (
+                        <div className="flex items-center gap-2">
+                          <Camera className="w-4 h-4 text-white/60" />
+                          <span className="text-white/80">
+                            {[selectedMedia.metadata.cameraMake, selectedMedia.metadata.cameraModel]
+                              .filter(Boolean).join(' ')}
                           </span>
                         </div>
                       )}
                       
                       {selectedMedia.metadata.location && (
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>위치 정보</span>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-white/60" />
+                          <span className="text-white/80">
+                            위치: {selectedMedia.metadata.location.latitude?.toFixed(6)}, 
+                            {selectedMedia.metadata.location.longitude?.toFixed(6)}
+                          </span>
                         </div>
                       )}
-                    </div>
-                    
-                    <div className="text-xs text-white/60">
-                      {formatFileSize(selectedMedia.size)} • {selectedMedia.metadata.width}×{selectedMedia.metadata.height}
+                      
+                      {/* 기술적 정보 */}
+                      <div className="col-span-2 pt-1 border-t border-white/10">
+                        <div className="flex flex-wrap gap-3 text-xs text-white/60">
+                          <span>크기: {formatFileSize(selectedMedia.size)}</span>
+                          {selectedMedia.metadata.width && selectedMedia.metadata.height && (
+                            <span>해상도: {selectedMedia.metadata.width}×{selectedMedia.metadata.height}</span>
+                          )}
+                          {selectedMedia.metadata.iso && (
+                            <span>ISO: {selectedMedia.metadata.iso}</span>
+                          )}
+                          {selectedMedia.metadata.fNumber && (
+                            <span>조리개: f/{selectedMedia.metadata.fNumber}</span>
+                          )}
+                          {selectedMedia.metadata.exposureTime && (
+                            <span>셔터: {selectedMedia.metadata.exposureTime}s</span>
+                          )}
+                          {selectedMedia.metadata.focalLength && (
+                            <span>초점거리: {selectedMedia.metadata.focalLength}mm</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <button className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleShareMedia(selectedMedia)}
+                      className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                      title="공유"
+                    >
                       <Share2 className="w-4 h-4" />
                     </button>
-                    <button className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleDownloadMedia(selectedMedia)}
+                      className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                      title="다운로드"
+                    >
                       <Download className="w-4 h-4" />
                     </button>
                     <button 
-                      onClick={() => handleDeleteMedia(selectedMedia.id)}
+                      onClick={() => showDeleteConfirm(selectedMedia.id)}
                       disabled={deletingMedia === selectedMedia.id}
                       className="p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors disabled:opacity-50"
+                      title="삭제"
                     >
                       <Trash2 className="w-4 h-4 text-red-400" />
                     </button>
@@ -586,6 +710,77 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                 </div>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 삭제 확인 모달 */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-stone-800 rounded-2xl p-6 max-w-sm w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center">
+                <div className="mx-auto w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                  <Trash2 className="w-6 h-6 text-red-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  미디어 삭제
+                </h3>
+                <p className="text-stone-300 text-sm mb-6">
+                  이 미디어를 삭제하시겠습니까?<br />
+                  삭제된 미디어는 복구할 수 없습니다.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 py-2.5 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors font-medium"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleDeleteMedia}
+                    disabled={deletingMedia !== null}
+                    className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deletingMedia ? '삭제 중...' : '삭제'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 토스트 알림 */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[70]"
+          >
+            <div
+              className={`px-4 py-3 rounded-xl shadow-lg ${
+                toast.type === 'success'
+                  ? 'bg-green-500/90 text-white'
+                  : 'bg-red-500/90 text-white'
+              } backdrop-blur-sm min-w-[200px] text-center`}
+            >
+              <p className="text-sm font-medium">{toast.message}</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -6,7 +6,8 @@ import {
   FileVideo, 
   AlertCircle, 
   CheckCircle, 
-  Loader2 
+  Loader2,
+  RefreshCw 
 } from 'lucide-react';
 import { UploadFile } from '../model/upload-types';
 import { formatFileSize } from '../lib/upload-utils';
@@ -15,6 +16,7 @@ interface FileListProps {
   files: UploadFile[];
   isUploading: boolean;
   onRemoveFile: (fileId: string) => void;
+  onRetryFile?: (fileId: string) => void;
 }
 
 const getFileIcon = (file: File) => {
@@ -39,7 +41,7 @@ const getStatusIcon = (status: UploadFile['status']) => {
   }
 };
 
-export function FileList({ files, isUploading, onRemoveFile }: FileListProps) {
+export function FileList({ files, isUploading, onRemoveFile, onRetryFile }: FileListProps) {
   if (files.length === 0) return null;
 
   return (
@@ -87,10 +89,21 @@ export function FileList({ files, isUploading, onRemoveFile }: FileListProps) {
 
               {/* 에러 메시지 */}
               {uploadFile.status === 'failed' && uploadFile.error && (
-                <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-                  <div className="text-xs text-red-400">
-                    {uploadFile.error}
+                <div className="mt-2">
+                  <div className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <div className="text-xs text-red-400">
+                      {uploadFile.error}
+                    </div>
                   </div>
+                  {onRetryFile && (
+                    <button
+                      onClick={() => onRetryFile(uploadFile.id)}
+                      className="mt-2 flex items-center gap-1 text-xs text-stone-300 hover:text-white bg-stone-700 hover:bg-stone-600 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      다시 시도
+                    </button>
+                  )}
                 </div>
               )}
 

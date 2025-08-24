@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unlink } from "fs/promises";
 import { existsSync } from "fs";
+import path from "path";
 
 import { verifyToken } from "../../../../shared/lib/auth";
 import { connectDB } from "../../../../shared/lib/database";
 import { Media } from "../../../../entities/media/model/media.model";
 import { Group } from "../../../../entities/group/model/group.model";
+import { env } from "../../../../shared/config/env";
 
 export async function DELETE(
   request: NextRequest,
@@ -65,21 +67,40 @@ export async function DELETE(
       );
     }
 
+    // 실제 파일 경로 계산
+    const uploadBase = env.UPLOAD_PATH?.startsWith("./") 
+      ? path.join(process.cwd(), env.UPLOAD_PATH.slice(2))
+      : env.UPLOAD_PATH || "/tmp/uploads";
+
     // 파일 삭제 (원본 파일)
-    if (media.path && existsSync(media.path)) {
+    const actualFilePath = media.path.startsWith("/uploads/")
+      ? path.join(uploadBase, media.path.replace("/uploads/", ""))
+      : media.path.startsWith("/home/pi/")
+      ? media.path
+      : path.join(uploadBase, media.path);
+
+    if (actualFilePath && existsSync(actualFilePath)) {
       try {
-        await unlink(media.path);
-        console.log("원본 파일 삭제:", media.path);
+        await unlink(actualFilePath);
+        console.log("원본 파일 삭제:", actualFilePath);
       } catch (error) {
         console.error("원본 파일 삭제 실패:", error);
       }
     }
 
     // 썸네일 파일 삭제
-    if (media.thumbnailPath && existsSync(media.thumbnailPath)) {
+    const actualThumbnailPath = media.thumbnailPath?.startsWith("/uploads/")
+      ? path.join(uploadBase, media.thumbnailPath.replace("/uploads/", ""))
+      : media.thumbnailPath?.startsWith("/home/pi/")
+      ? media.thumbnailPath
+      : media.thumbnailPath 
+      ? path.join(uploadBase, media.thumbnailPath)
+      : null;
+
+    if (actualThumbnailPath && existsSync(actualThumbnailPath)) {
       try {
-        await unlink(media.thumbnailPath);
-        console.log("썸네일 파일 삭제:", media.thumbnailPath);
+        await unlink(actualThumbnailPath);
+        console.log("썸네일 파일 삭제:", actualThumbnailPath);
       } catch (error) {
         console.error("썸네일 파일 삭제 실패:", error);
       }

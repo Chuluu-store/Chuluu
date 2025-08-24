@@ -101,7 +101,7 @@ export async function GET(
 
     media.forEach((item: any) => {
       // 촬영날짜 기준으로 그룹화 (없으면 업로드날짜 사용)
-      const takenDate = item.metadata?.takenAt || item.uploadedAt;
+      const takenDate = item.metadata?.takenAt || item.uploadedAt || item.createdAt;
       const dateKey = new Date(takenDate).toISOString().split("T")[0]; // YYYY-MM-DD
 
       if (!groupedMedia[dateKey]) {
@@ -110,7 +110,7 @@ export async function GET(
 
       // 응답 데이터 구성
       const mediaItem = {
-        id: item._id,
+        id: item._id?.toString() || item._id,  // ObjectId를 문자열로 변환
         filename: item.filename,
         originalName: item.originalName,
         path: item.path, // 원본 파일 경로 추가
@@ -128,14 +128,20 @@ export async function GET(
               username: "Unknown User",
               email: "",
             },
-        uploadedAt: item.uploadedAt,
-        takenAt: item.metadata?.takenAt || item.uploadedAt,
+        uploadedAt: item.uploadedAt || item.createdAt,
+        createdAt: item.createdAt || item.uploadedAt,  // 업로드 날짜 추가
+        takenAt: item.metadata?.takenAt || null,  // 촬영 날짜가 없으면 null
         metadata: {
           width: item.metadata?.width,
           height: item.metadata?.height,
           duration: item.metadata?.duration,
+          takenAt: item.metadata?.takenAt,  // 메타데이터에서 촬영 날짜
           cameraMake: item.metadata?.cameraMake,
           cameraModel: item.metadata?.cameraModel,
+          iso: item.metadata?.iso,
+          fNumber: item.metadata?.fNumber,
+          exposureTime: item.metadata?.exposureTime,
+          focalLength: item.metadata?.focalLength,
           location: item.metadata?.location,
         },
       };

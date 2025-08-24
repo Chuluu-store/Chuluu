@@ -16,9 +16,9 @@ export const isValidFileType = (file: File): boolean => {
   return allowedTypes.includes(file.type);
 };
 
-// 파일 크기 검증 (500MB)
+// 파일 크기 검증 (10GB)
 export const isValidFileSize = (file: File): boolean => {
-  const maxSize = 500 * 1024 * 1024; // 500MB
+  const maxSize = 10 * 1024 * 1024 * 1024; // 10GB
   return file.size <= maxSize;
 };
 
