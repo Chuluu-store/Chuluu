@@ -24,23 +24,48 @@ export function BulkUpload({ groupId, onUploadComplete, onClose }: BulkUploadPro
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // 파일 선택 처리
-  const handleFileSelect = useCallback((selectedFiles: FileList) => {
+  const handleFileSelect = useCallback(async (selectedFiles: FileList) => {
     const validFiles: File[] = [];
     const errors: string[] = [];
+    const previewMap = new Map<string, string>(); // 파일 ID -> 프리뷰 URL 매핑
 
-    Array.from(selectedFiles).forEach(file => {
-      if (!isValidFileType(file)) {
+    // HEIC 파일 처리 및 유효성 검사
+    for (const file of Array.from(selectedFiles)) {
+      // HEIC 파일 확장자 체크
+      const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || 
+                     file.name.toLowerCase().endsWith('.heic') || 
+                     file.name.toLowerCase().endsWith('.heif');
+      
+      if (!isValidFileType(file) && !isHeic) {
         errors.push(`${file.name}: 지원하지 않는 파일 형식`);
-        return;
+        continue;
       }
       
       if (!isValidFileSize(file)) {
         errors.push(`${file.name}: 파일 크기가 10GB를 초과합니다`);
-        return;
+        continue;
       }
 
       validFiles.push(file);
-    });
+      
+      // HEIC 파일의 경우 미리보기용 JPEG 변환 (원본은 유지)
+      if (isHeic && typeof window !== 'undefined') {
+        try {
+          console.log(`Converting HEIC file for preview: ${file.name}`);
+          // 브라우저 환경에서만 heic2any를 동적으로 import
+          const heic2any = (await import('heic2any')).default;
+          const convertedBlob = await heic2any({
+            blob: file,
+            toType: 'image/jpeg',
+            quality: 0.8
+          }) as Blob;
+          const previewUrl = URL.createObjectURL(convertedBlob);
+          previewMap.set(generateFileId(file), previewUrl);
+        } catch (error) {
+          console.log('HEIC preview conversion failed, will use server conversion:', error);
+        }
+      }
+    }
 
     if (errors.length > 0) {
       alert(`다음 파일들을 업로드할 수 없습니다:\n${errors.join('\n')}`);
@@ -48,12 +73,20 @@ export function BulkUpload({ groupId, onUploadComplete, onClose }: BulkUploadPro
 
     if (validFiles.length === 0) return;
 
-    const newFiles: UploadFile[] = validFiles.map((file) => ({
-      file,
-      id: generateFileId(file),
-      status: 'pending',
-      progress: 0
-    }));
+    const newFiles: UploadFile[] = validFiles.map((file) => {
+      const fileId = generateFileId(file);
+      const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || 
+                     file.name.toLowerCase().endsWith('.heic') || 
+                     file.name.toLowerCase().endsWith('.heif');
+      
+      return {
+        file, // 원본 HEIC 파일 유지
+        id: fileId,
+        status: 'pending' as const,
+        progress: 0,
+        previewUrl: previewMap.get(fileId) // HEIC의 경우 변환된 미리보기 URL
+      };
+    });
 
     // 최대 5000개 파일 제한
     const totalFiles = files.length + newFiles.length;
@@ -260,7 +293,7 @@ export function BulkUpload({ groupId, onUploadComplete, onClose }: BulkUploadPro
         ref={fileInputRef}
         type="file"
         multiple
-        accept="image/*,video/*"
+        accept="image/*,video/*,image/heic,image/heif,.heic,.heif,.HEIC,.HEIF"
         onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
         className="hidden"
       />

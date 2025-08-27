@@ -108,6 +108,19 @@ export async function GET(
         groupedMedia[dateKey] = [];
       }
 
+      // EXIF 디버깅
+      if (item.metadata) {
+        console.log(`📸 Media ${item._id} EXIF:`, {
+          filename: item.originalName,
+          rawMetadata: item.metadata,
+          cameraMake: item.metadata?.cameraMake,
+          cameraModel: item.metadata?.cameraModel,
+          takenAt: item.metadata?.takenAt,
+          iso: item.metadata?.iso,
+          exif: item.metadata?.exif ? Object.keys(item.metadata.exif).slice(0, 10) : 'no exif'
+        });
+      }
+
       // 응답 데이터 구성
       const mediaItem = {
         id: item._id?.toString() || item._id,  // ObjectId를 문자열로 변환

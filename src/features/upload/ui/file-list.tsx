@@ -19,8 +19,20 @@ interface FileListProps {
   onRetryFile?: (fileId: string) => void;
 }
 
-const getFileIcon = (file: File) => {
-  if (file.type.startsWith('image/')) {
+const getFileIcon = (file: File, previewUrl?: string) => {
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || 
+                 file.name.toLowerCase().endsWith('.heic') || 
+                 file.name.toLowerCase().endsWith('.heif');
+  
+  if (file.type.startsWith('image/') || isHeic) {
+    // HEIC 파일이고 미리보기 URL이 있으면 썸네일 표시
+    if (previewUrl && isHeic) {
+      return (
+        <div className="relative w-8 h-8 rounded overflow-hidden">
+          <img src={previewUrl} alt={file.name} className="w-full h-full object-cover" />
+        </div>
+      );
+    }
     return <FileImage className="w-8 h-8 text-blue-400" />;
   } else if (file.type.startsWith('video/')) {
     return <FileVideo className="w-8 h-8 text-purple-400" />;
@@ -57,7 +69,7 @@ export function FileList({ files, isUploading, onRemoveFile, onRetryFile }: File
           >
             {/* 파일 아이콘 */}
             <div className="flex-shrink-0">
-              {getFileIcon(uploadFile.file)}
+              {getFileIcon(uploadFile.file, uploadFile.previewUrl)}
             </div>
 
             {/* 파일 정보 */}

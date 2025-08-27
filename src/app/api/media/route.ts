@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "../../../shared/lib/auth";
 import { connectDB } from "../../../shared/lib/database";
 import { Media } from "../../../entities/media/model/media.model";
+import { User } from "../../../entities/user/model/user.model";
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,8 +33,6 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1, uploadedAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("uploadedBy", "username email")
-      .populate("groupId", "name")
       .lean();
 
     const total = await Media.countDocuments(query);
@@ -52,7 +51,7 @@ export async function GET(request: NextRequest) {
         height: item.metadata?.height,
         dateTaken: item.metadata?.takenAt,
       },
-      group: item.groupId,
+      group: item.groupId ? { _id: item.groupId } : null,
       uploadedBy: item.uploadedBy,
     }));
 

@@ -5,6 +5,7 @@ export interface UploadFile {
   progress: number;
   error?: string;
   mediaId?: string;
+  previewUrl?: string; // HEIC 파일의 경우 변환된 미리보기 URL
 }
 
 export interface UploadStats {

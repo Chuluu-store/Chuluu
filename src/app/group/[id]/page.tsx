@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -41,6 +41,7 @@ export default function GroupDetailPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentPage, setCurrentPage] = useState<"home" | "groups">("groups");
   const [recentMedia, setRecentMedia] = useState<any[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -114,10 +115,17 @@ export default function GroupDetailPage() {
   const handleUploadComplete = async (results: any) => {
     console.log("업로드 완료:", results);
     setShowUpload(false);
+    // 성공 메시지 표시
+    showToast('미디어 업로드가 완료되었습니다!', 'success');
     // 그룹 데이터 새로고침 - 약간의 지연 후 로드하여 DB 업데이트 확실히 하기
     setTimeout(() => {
       loadGroupData();
     }, 500);
+  };
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const handleBackToGroup = () => {
@@ -130,8 +138,7 @@ export default function GroupDetailPage() {
   const copyInviteCode = () => {
     if (group?.inviteCode) {
       navigator.clipboard.writeText(group.inviteCode);
-      // TODO: 토스트 메시지 표시
-      alert("초대 코드가 복사되었습니다!");
+      showToast('초대 코드가 복사되었습니다!', 'success');
     }
   };
 
@@ -389,12 +396,26 @@ export default function GroupDetailPage() {
                           className="aspect-square bg-stone-700 rounded-xl overflow-hidden relative group cursor-pointer"
                           onClick={() => setShowGallery(true)}
                         >
-                          <img
-                            src={`/api/media/thumbnail/${media.id}?size=200`}
-                            alt={media.filename}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                            loading="lazy"
-                          />
+                          {media.mimeType?.startsWith("image/") ? (
+                            <img
+                              src={`/api/media/thumbnail/${media._id || media.id}?size=200`}
+                              alt={media.originalName || media.filename}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              loading="lazy"
+                              onError={(e) => {
+                                // 썸네일 로드 실패시 원본 이미지 시도
+                                const target = e.target as HTMLImageElement;
+                                target.src = `/api/media/file/${media._id || media.id}`;
+                              }}
+                            />
+                          ) : (
+                            <img
+                              src={`/api/media/thumbnail/${media._id || media.id}?size=200`}
+                              alt={media.originalName || media.filename}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              loading="lazy"
+                            />
+                          )}
                           {media.mimeType?.startsWith("video/") && (
                             <div className="absolute inset-0 flex items-center justify-center">
                               <div className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center">
@@ -402,7 +423,15 @@ export default function GroupDetailPage() {
                               </div>
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            {media.uploadedBy && (
+                              <div className="absolute bottom-2 left-2 right-2">
+                                <p className="text-white text-xs truncate">
+                                  {media.uploadedBy.name || media.uploadedBy.email?.split('@')[0] || '알 수 없음'}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </motion.div>
                       ))
                     : // 빈 상태일 때 placeholder
@@ -428,6 +457,28 @@ export default function GroupDetailPage() {
         </div>
         <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
       </div>
+
+      {/* 토스트 알림 */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[70]"
+          >
+            <div
+              className={`px-6 py-4 rounded-2xl shadow-2xl ${
+                toast.type === 'success'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-red-500 text-white'
+              } backdrop-blur-sm min-w-[250px] text-center`}
+            >
+              <p className="text-sm font-semibold">{toast.message}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -34,10 +34,10 @@ export const createUploadSession = async (
   return response.json();
 };
 
-// 개별 파일 업로드
+// 개별 파일 업로드 (Direct Upload API 사용)
 export const uploadFile = async (
   file: File,
-  sessionId: string,
+  groupId: string,
   fileIndex: number,
   onProgress: (progress: number) => void,
   signal: AbortSignal
@@ -45,7 +45,7 @@ export const uploadFile = async (
   console.log('🌐 Starting file upload API call:', {
     fileName: file.name,
     fileSize: file.size,
-    sessionId,
+    groupId,
     fileIndex
   });
 
@@ -57,33 +57,61 @@ export const uploadFile = async (
 
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('sessionId', sessionId);
-  formData.append('fileIndex', fileIndex.toString());
+  formData.append('groupId', groupId);
 
-  console.log('📡 Making fetch request to /api/upload/file');
+  console.log('📡 Making fetch request to /api/upload/direct');
 
-  const response = await fetch('/api/upload/file', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-    body: formData,
-    signal
+  // XMLHttpRequest를 사용하여 진행률 추적
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        onProgress(percentComplete);
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const result = JSON.parse(xhr.responseText);
+          console.log('✅ Upload successful:', result);
+          resolve(result);
+        } catch (error) {
+          console.error('❌ Failed to parse response:', error);
+          reject(new Error('응답 파싱 실패'));
+        }
+      } else {
+        try {
+          const error = JSON.parse(xhr.responseText);
+          console.error('❌ Upload failed:', error);
+          reject(new Error(error.error || '파일 업로드 실패'));
+        } catch {
+          reject(new Error(`업로드 실패: ${xhr.statusText}`));
+        }
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      console.error('❌ Network error during upload');
+      reject(new Error('네트워크 오류'));
+    });
+
+    xhr.addEventListener('abort', () => {
+      console.log('⚠️ Upload aborted');
+      reject(new Error('업로드 취소됨'));
+    });
+
+    // 취소 신호 처리
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        xhr.abort();
+      });
+    }
+
+    xhr.open('POST', '/api/upload/direct');
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.send(formData);
   });
-
-  console.log('📨 Upload response:', {
-    status: response.status,
-    statusText: response.statusText,
-    ok: response.ok
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    console.error('❌ Upload failed:', error);
-    throw new Error(error.error || '파일 업로드 실패');
-  }
-
-  const result = await response.json();
-  console.log('✅ Upload successful:', result);
-  return result;
 };

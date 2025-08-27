@@ -248,16 +248,27 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
     }
   };
 
-  // 미디어 다운로드
+  // 미디어 다운로드 (HEIC 원본 보존)
   const handleDownloadMedia = async (media: MediaItem) => {
     try {
       showToast('다운로드 중...', 'success');
-      const response = await fetch(getOriginalUrl(media));
+      
+      // HEIC 파일의 경우 원본 다운로드를 위해 특별 처리
+      const isHeic = media.mimeType === 'image/heic' || media.mimeType === 'image/heif' ||
+                     media.originalName.toLowerCase().endsWith('.heic') ||
+                     media.originalName.toLowerCase().endsWith('.heif');
+      
+      // 원본 파일 다운로드 URL (HEIC는 변환하지 않음)
+      const downloadUrl = isHeic 
+        ? `/api/media/download/${media.id}` // 원본 다운로드 전용 엔드포인트
+        : getOriginalUrl(media);
+      
+      const response = await fetch(downloadUrl);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = media.originalName;
+      a.download = media.originalName; // 원본 파일명 유지
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -357,10 +368,8 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   // 썸네일 URL 생성
   const getThumbnailUrl = (media: MediaItem) => {
     // 항상 API를 통해 썸네일 가져오기 (캐싱 및 권한 처리)
-    if (media.mimeType.startsWith('image/')) {
-      return `/api/media/thumbnail/${media.id}`;
-    }
-    return null;
+    // 이미지와 비디오 모두 썸네일 API 사용
+    return `/api/media/thumbnail/${media.id}`;
   };
   
   // 원본 파일 URL 생성
@@ -378,7 +387,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   }
 
   return (
-    <div className="min-h-screen bg-stone-900">
+    <div className="min-h-screen bg-stone-900 relative">
       {/* 헤더 */}
       <div className="sticky top-0 z-20 bg-stone-900/80 backdrop-blur-xl border-b border-stone-700/30">
         <div className="p-4 flex items-center justify-between">
@@ -466,31 +475,33 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                       onClick={() => handleMediaClick(media)}
                     >
                     {/* 썸네일 */}
-                    {media.mimeType.startsWith('image/') ? (
-                      <Image
-                        src={getThumbnailUrl(media) || '/placeholder-image.png'}
-                        alt={media.originalName}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-stone-700">
-                        <Play className="w-8 h-8 text-white/60" />
+                    {/* 썸네일 이미지 - 비디오와 이미지 모두 동일하게 처리 */}
+                    <Image
+                      src={getThumbnailUrl(media)}
+                      alt={media.originalName}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        // 썸네일 로드 실패시 원본 시도
+                        if (!target.src.includes('/api/media/file/')) {
+                          target.src = `/api/media/file/${media.id}`;
+                        }
+                      }}
+                    />
+                    
+                    {/* 비디오 재생 버튼 오버레이 */}
+                    {media.mimeType.startsWith('video/') && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="bg-black/50 rounded-full p-3">
+                          <Play className="w-6 h-6 text-white fill-white" />
+                        </div>
                       </div>
                     )}
 
                     {/* 오버레이 */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-
-                    {/* 비디오 표시 */}
-                    {media.mimeType.startsWith('video/') && (
-                      <div className="absolute top-2 right-2">
-                        <div className="bg-black/60 rounded-full p-1">
-                          <Play className="w-3 h-3 text-white" />
-                        </div>
-                      </div>
-                    )}
 
                     {/* 업로더 정보 */}
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
@@ -563,41 +574,15 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                     className="max-w-full max-h-[70vh] object-contain"
                   />
                 ) : (
-                  <div className="relative">
-                    <video
-                      ref={videoRef}
-                      src={getOriginalUrl(selectedMedia)}
-                      className="max-w-full max-h-[70vh]"
-                      controls={false}
-                      muted={isVideoMuted}
-                      onPlay={() => setIsVideoPlaying(true)}
-                      onPause={() => setIsVideoPlaying(false)}
-                    />
-                    
-                    {/* 비디오 컨트롤 */}
-                    <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                      <button
-                        onClick={toggleVideoPlay}
-                        className="p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
-                      >
-                        {isVideoPlaying ? (
-                          <Pause className="w-5 h-5 text-white" />
-                        ) : (
-                          <Play className="w-5 h-5 text-white" />
-                        )}
-                      </button>
-                      <button
-                        onClick={toggleVideoMute}
-                        className="p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
-                      >
-                        {isVideoMuted ? (
-                          <VolumeX className="w-5 h-5 text-white" />
-                        ) : (
-                          <Volume2 className="w-5 h-5 text-white" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                  <video
+                    ref={videoRef}
+                    src={getOriginalUrl(selectedMedia)}
+                    className="max-w-full max-h-[70vh] rounded-lg"
+                    controls={true}
+                    autoPlay={false}
+                    onPlay={() => setIsVideoPlaying(true)}
+                    onPause={() => setIsVideoPlaying(false)}
+                  />
                 )}
               </div>
 
@@ -717,18 +702,23 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       {/* 삭제 확인 모달 */}
       <AnimatePresence>
         {showDeleteModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4"
-            onClick={() => setShowDeleteModal(false)}
-          >
+          <div className="fixed inset-0 z-[60] flex items-center justify-center">
+            {/* 백드롭 */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/70"
+              onClick={() => setShowDeleteModal(false)}
+            />
+            
+            {/* 모달 */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-stone-800 rounded-2xl p-6 max-w-sm w-full"
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-stone-800 rounded-2xl p-6 w-[90%] max-w-sm z-10"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-center">
@@ -745,21 +735,21 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className="flex-1 py-2.5 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors font-medium"
+                    className="flex-1 py-3 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors font-medium"
                   >
                     취소
                   </button>
                   <button
                     onClick={handleDeleteMedia}
                     disabled={deletingMedia !== null}
-                    className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {deletingMedia ? '삭제 중...' : '삭제'}
                   </button>
                 </div>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -767,19 +757,19 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       <AnimatePresence>
         {toast && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[70]"
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[70]"
           >
             <div
-              className={`px-4 py-3 rounded-xl shadow-lg ${
+              className={`px-6 py-4 rounded-2xl shadow-2xl ${
                 toast.type === 'success'
-                  ? 'bg-green-500/90 text-white'
-                  : 'bg-red-500/90 text-white'
-              } backdrop-blur-sm min-w-[200px] text-center`}
+                  ? 'bg-green-500 text-white'
+                  : 'bg-red-500 text-white'
+              } backdrop-blur-sm min-w-[250px] text-center`}
             >
-              <p className="text-sm font-medium">{toast.message}</p>
+              <p className="text-sm font-semibold">{toast.message}</p>
             </div>
           </motion.div>
         )}

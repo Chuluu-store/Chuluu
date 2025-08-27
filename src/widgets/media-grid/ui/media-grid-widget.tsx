@@ -75,30 +75,30 @@ export function MediaGridWidget() {
 
   return (
     <>
-      <div className="glass-card p-4 rounded-3xl">
-        <div className="grid grid-cols-3 gap-2">
+      <div className="bg-stone-800/50 backdrop-blur-sm p-4 rounded-2xl">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {media.map((item, index) => (
             <motion.div
               key={item._id}
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative aspect-square cursor-pointer overflow-hidden glass-card rounded-2xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.03 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative aspect-square cursor-pointer overflow-hidden bg-stone-900 rounded-xl group"
               onClick={() => handleMediaClick(item)}
             >
               {item.isVideo ? (
-                <div className="relative w-full h-full flex items-center justify-center bg-gray-800">
+                <div className="relative w-full h-full flex items-center justify-center bg-stone-800">
                   <video
-                    src={item.path}
+                    src={`/api/media/file/${item._id}`}
                     className="w-full h-full object-cover"
                     muted
                   />
-                  <div className="absolute inset-0 flex items-center justify-center glass">
-                    <div className="glass-button p-3 rounded-full">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div className="bg-black/60 p-2 rounded-full">
                       <svg
-                        className="w-8 h-8 text-white"
+                        className="w-6 h-6 text-white"
                         fill="currentColor"
                         viewBox="0 0 24 24"
                       >
@@ -108,15 +108,21 @@ export function MediaGridWidget() {
                   </div>
                 </div>
               ) : (
-                <div className="relative w-full h-full bg-gray-800">
+                <div className="relative w-full h-full bg-stone-800">
                   <Image
-                    src={item.thumbnail || item.path}
+                    src={item.thumbnail ? `/api/media/thumbnail/${item._id}` : `/api/media/file/${item._id}`}
                     alt={item.originalName}
                     fill
                     className="object-cover"
-                    sizes="33vw"
+                    sizes="(max-width: 640px) 50vw, 33vw"
                   />
-                  <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  {/* 업로더 이름 표시 */}
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                    <p className="text-xs text-white/80 truncate">
+                      {item.group?.name || "김승찬"}
+                    </p>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -193,14 +199,14 @@ export function MediaGridWidget() {
               <div className="relative">
                 {selectedMedia.isVideo ? (
                   <video
-                    src={selectedMedia.path}
+                    src={`/api/media/file/${selectedMedia._id}`}
                     controls
                     autoPlay
                     className="max-w-full max-h-[70vh] rounded-xl"
                   />
                 ) : (
                   <Image
-                    src={selectedMedia.path}
+                    src={`/api/media/file/${selectedMedia._id}`}
                     alt={selectedMedia.originalName}
                     width={selectedMedia.metadata?.width || 800}
                     height={selectedMedia.metadata?.height || 600}

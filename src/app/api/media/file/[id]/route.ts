@@ -8,6 +8,7 @@ import { connectDB } from "../../../../../shared/lib/database";
 import { Media } from "../../../../../entities/media/model/media.model";
 import { Group } from "../../../../../entities/group/model/group.model";
 import { env } from "../../../../../shared/config/env";
+import { convertHeicToJpeg } from "../../../../../shared/lib/heic-converter";
 
 export async function GET(
   request: NextRequest,
@@ -99,6 +100,70 @@ export async function GET(
           ETag: `"${fileStat.size}-${fileStat.mtime.getTime()}"`,
         },
       });
+    }
+
+    // HEIC/HEIF 파일은 JPEG로 변환하여 제공
+    const isHeic = media.mimeType === 'image/heic' || media.mimeType === 'image/heif' || 
+                   actualFilePath.toLowerCase().endsWith('.heic') || actualFilePath.toLowerCase().endsWith('.heif');
+    
+    if (isHeic) {
+      console.log(`Converting HEIC to JPEG: ${actualFilePath}`);
+      
+      // 먼저 시스템 명령어로 변환 시도
+      const convertedBuffer = await convertHeicToJpeg(actualFilePath);
+      
+      if (convertedBuffer) {
+        console.log(`✅ HEIC converted successfully: ${convertedBuffer.length} bytes`);
+        
+        return new NextResponse(new Uint8Array(convertedBuffer), {
+          headers: {
+            "Content-Type": "image/jpeg",
+            "Content-Length": convertedBuffer.length.toString(),
+            "Cache-Control": "public, max-age=31536000",
+            "Last-Modified": fileStat.mtime.toUTCString(),
+            ETag: `"${fileStat.size}-${fileStat.mtime.getTime()}-converted"`,
+            "Content-Disposition": `inline; filename="${encodeURIComponent(
+              media.originalName.replace(/\.(heic|heif)$/i, '.jpg')
+            )}"`,
+          },
+        });
+      } else {
+        // 변환 실패 시 Sharp로 플레이스홀더 생성
+        console.log("HEIC conversion failed, creating placeholder");
+        
+        const sharp = await import('sharp');
+        const placeholderBuffer = await sharp.default({
+          create: {
+            width: 800,
+            height: 600,
+            channels: 3,
+            background: { r: 68, g: 64, b: 60 }
+          }
+        })
+        .composite([{
+          input: Buffer.from(
+            `<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+              <rect width="100%" height="100%" fill="#44403c"/>
+              <text x="50%" y="45%" text-anchor="middle" fill="white" font-size="36" font-family="Arial">HEIC 파일</text>
+              <text x="50%" y="52%" text-anchor="middle" fill="white" font-size="20" font-family="Arial">브라우저 미리보기 불가</text>
+              <text x="50%" y="58%" text-anchor="middle" fill="white" font-size="16" font-family="Arial">다운로드하여 확인하세요</text>
+            </svg>`
+          ),
+          top: 0,
+          left: 0
+        }])
+        .jpeg({ quality: 90 })
+        .toBuffer();
+        
+        return new NextResponse(new Uint8Array(placeholderBuffer), {
+          headers: {
+            "Content-Type": "image/jpeg",
+            "Content-Length": placeholderBuffer.length.toString(),
+            "Cache-Control": "no-cache",
+            "Content-Disposition": `inline; filename="preview.jpg"`,
+          },
+        });
+      }
     }
 
     // 일반 파일 응답
