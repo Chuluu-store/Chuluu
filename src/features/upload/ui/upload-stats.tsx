@@ -25,7 +25,7 @@ export function UploadStats({
   onStartUpload,
   onTogglePause,
   onCancelUpload,
-  hasFiles
+  hasFiles,
 }: UploadStatsProps) {
   return (
     <div className="bg-stone-900/30 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-6 space-y-6">
@@ -42,7 +42,7 @@ export function UploadStats({
             <div className="text-xs text-stone-400 font-medium uppercase tracking-wider">총 파일</div>
           </div>
         </motion.div>
-        
+
         {/* 완료/실패 통계 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -64,7 +64,7 @@ export function UploadStats({
             </div>
           </div>
         </motion.div>
-        
+
         {/* 총 용량 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -101,7 +101,7 @@ export function UploadStats({
               <Upload className="w-4 h-4" />
               <span className="font-medium">파일 추가</span>
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -124,7 +124,7 @@ export function UploadStats({
               {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               <span className="font-medium">{isPaused ? '재시작' : '일시정지'}</span>
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -140,11 +140,7 @@ export function UploadStats({
 
       {/* 전체 진행률 */}
       {isUploading && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="space-y-2"
-        >
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-stone-300 font-medium">전체 진행률</span>
             <span className="text-white font-semibold">{overallProgress}%</span>

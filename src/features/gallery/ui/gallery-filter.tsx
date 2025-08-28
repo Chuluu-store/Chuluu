@@ -1,16 +1,7 @@
 'use client';
 
 import React from 'react';
-import { 
-  Calendar,
-  Upload,
-  Camera,
-  Filter,
-  SlidersHorizontal,
-  Image,
-  Video,
-  ArrowUpDown
-} from 'lucide-react';
+import { Calendar, Upload, Camera, Filter, SlidersHorizontal, Image, Video, ArrowUpDown } from 'lucide-react';
 
 interface FilterOptions {
   sortBy: 'takenAt' | 'uploadedAt';
@@ -43,8 +34,12 @@ export function GalleryFilter({ filters, onFilterChange, cameraOptions = [] }: G
               className="bg-transparent text-white text-sm focus:outline-none cursor-pointer pr-6 appearance-none min-w-[80px] custom-select"
               style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
             >
-              <option value="takenAt" className="bg-stone-800">촬영 날짜</option>
-              <option value="uploadedAt" className="bg-stone-800">업로드 날짜</option>
+              <option value="takenAt" className="bg-stone-800">
+                촬영 날짜
+              </option>
+              <option value="uploadedAt" className="bg-stone-800">
+                업로드 날짜
+              </option>
             </select>
           </div>
 
@@ -64,8 +59,8 @@ export function GalleryFilter({ filters, onFilterChange, cameraOptions = [] }: G
             <button
               onClick={() => onFilterChange({ ...filters, mediaType: undefined })}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all whitespace-nowrap ${
-                !filters.mediaType 
-                  ? 'bg-stone-700 border-stone-600 text-white' 
+                !filters.mediaType
+                  ? 'bg-stone-700 border-stone-600 text-white'
                   : 'bg-stone-800/80 border-stone-700/50 text-stone-400 hover:border-stone-600'
               }`}
             >
@@ -75,8 +70,8 @@ export function GalleryFilter({ filters, onFilterChange, cameraOptions = [] }: G
             <button
               onClick={() => onFilterChange({ ...filters, mediaType: 'image' })}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all whitespace-nowrap ${
-                filters.mediaType === 'image' 
-                  ? 'bg-stone-700 border-stone-600 text-white' 
+                filters.mediaType === 'image'
+                  ? 'bg-stone-700 border-stone-600 text-white'
                   : 'bg-stone-800/80 border-stone-700/50 text-stone-400 hover:border-stone-600'
               }`}
             >
@@ -86,8 +81,8 @@ export function GalleryFilter({ filters, onFilterChange, cameraOptions = [] }: G
             <button
               onClick={() => onFilterChange({ ...filters, mediaType: 'video' })}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all whitespace-nowrap ${
-                filters.mediaType === 'video' 
-                  ? 'bg-stone-700 border-stone-600 text-white' 
+                filters.mediaType === 'video'
+                  ? 'bg-stone-700 border-stone-600 text-white'
                   : 'bg-stone-800/80 border-stone-700/50 text-stone-400 hover:border-stone-600'
               }`}
             >
@@ -102,13 +97,19 @@ export function GalleryFilter({ filters, onFilterChange, cameraOptions = [] }: G
               <Camera className="w-3.5 h-3.5 text-stone-400" />
               <select
                 value={filters.cameraMake || 'all'}
-                onChange={(e) => onFilterChange({ ...filters, cameraMake: e.target.value === 'all' ? undefined : e.target.value })}
+                onChange={(e) =>
+                  onFilterChange({ ...filters, cameraMake: e.target.value === 'all' ? undefined : e.target.value })
+                }
                 className="bg-transparent text-white text-sm focus:outline-none cursor-pointer pr-6 appearance-none min-w-[80px] custom-select"
                 style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
               >
-                <option value="all" className="bg-stone-800">모든 기종</option>
-                {cameraOptions.map(camera => (
-                  <option key={camera} value={camera} className="bg-stone-800">{camera}</option>
+                <option value="all" className="bg-stone-800">
+                  모든 기종
+                </option>
+                {cameraOptions.map((camera) => (
+                  <option key={camera} value={camera} className="bg-stone-800">
+                    {camera}
+                  </option>
                 ))}
               </select>
             </div>
@@ -122,8 +123,10 @@ export function GalleryFilter({ filters, onFilterChange, cameraOptions = [] }: G
                 {[
                   filters.mediaType === 'image' && '사진',
                   filters.mediaType === 'video' && '동영상',
-                  filters.cameraMake
-                ].filter(Boolean).join(' • ')}
+                  filters.cameraMake,
+                ]
+                  .filter(Boolean)
+                  .join(' • ')}
               </span>
             </div>
           )}

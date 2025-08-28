@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { LogIn as LogInIcon } from "lucide-react";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { LogIn as LogInIcon } from 'lucide-react';
 
 interface LoginPromptCardProps {
   onLogin: () => void;
@@ -23,8 +23,7 @@ export function LoginPromptCard({ onLogin }: LoginPromptCardProps) {
         <div className="space-y-3">
           <h2 className="text-2xl font-bold text-white">로그인이 필요합니다</h2>
           <p className="text-lg text-stone-300 leading-relaxed max-w-sm mx-auto">
-            <span className="text-stone-100 font-medium">Chuluu</span>에서 사진을
-            공유하고
+            <span className="text-stone-100 font-medium">Chuluu</span>에서 사진을 공유하고
             <br className="hidden sm:block" />
             추억을 함께 만들어보세요
           </p>

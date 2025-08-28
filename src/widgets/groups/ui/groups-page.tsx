@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { LoginForm } from "../../../features/auth/ui/login-form";
-import { GroupModal } from "../../../features/group/ui/group-modal";
-import { LoginPrompt } from "../../../features/auth/ui/login-prompt";
-import { GroupsHero } from "./groups-hero";
-import { GroupsList } from "./groups-list";
-import { EmptyGroupsState } from "./empty-groups-state";
-import { type Group } from "../../../entities/group/model/types";
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { LoginForm } from '../../../features/auth/ui/login-form';
+import { GroupModal } from '../../../features/group/ui/group-modal';
+import { LoginPrompt } from '../../../features/auth/ui/login-prompt';
+import { GroupsHero } from './groups-hero';
+import { GroupsList } from './groups-list';
+import { EmptyGroupsState } from './empty-groups-state';
+import { type Group } from '../../../entities/group/model/types';
 
 export function GroupsPage() {
   const router = useRouter();
@@ -19,15 +19,15 @@ export function GroupsPage() {
   const [loading, setLoading] = useState(false);
   const [groupModal, setGroupModal] = useState<{
     isOpen: boolean;
-    type: "create" | "join";
+    type: 'create' | 'join';
   }>({
     isOpen: false,
-    type: "create",
+    type: 'create',
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
 
     if (token && user) {
       setIsLoggedIn(true);
@@ -38,13 +38,13 @@ export function GroupsPage() {
   const fetchUserGroups = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) return;
 
       const response = await fetch('/api/groups', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -64,7 +64,7 @@ export function GroupsPage() {
     window.location.reload();
   };
 
-  const openGroupModal = (type: "create" | "join") => {
+  const openGroupModal = (type: 'create' | 'join') => {
     if (!isLoggedIn) {
       setShowLogin(true);
     } else {
@@ -73,7 +73,7 @@ export function GroupsPage() {
   };
 
   const handleGroupClick = (group: Group) => {
-    console.log("그룹 선택:", group);
+    console.log('그룹 선택:', group);
     router.push(`/group/${group.id}`);
   };
 
@@ -81,15 +81,8 @@ export function GroupsPage() {
     return (
       <div className="w-full">
         <div className="px-8 py-16 pb-24">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-12"
-          >
-            <GroupsHero
-              title="내 그룹"
-              subtitle="로그인하여 그룹을 관리하세요"
-            />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
+            <GroupsHero title="내 그룹" subtitle="로그인하여 그룹을 관리하세요" />
 
             {showLogin ? (
               <LoginForm onSuccess={handleLoginSuccess} />
@@ -105,27 +98,19 @@ export function GroupsPage() {
   return (
     <div className="w-full">
       <div className="px-8 py-16 pb-24">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="space-y-12"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
           <GroupsHero title="내 그룹" subtitle="참여 중인 그룹을 관리하세요" />
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             {groups.length === 0 ? (
               <EmptyGroupsState
-                onCreateGroup={() => openGroupModal("create")}
-                onJoinGroup={() => openGroupModal("join")}
+                onCreateGroup={() => openGroupModal('create')}
+                onJoinGroup={() => openGroupModal('join')}
               />
             ) : (
               <GroupsList
                 groups={groups}
-                onCreateGroup={() => openGroupModal("create")}
+                onCreateGroup={() => openGroupModal('create')}
                 onGroupClick={handleGroupClick}
               />
             )}

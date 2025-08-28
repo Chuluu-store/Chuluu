@@ -1,1 +1,1 @@
-export * from "./share-album-modal";
+export * from './share-album-modal';

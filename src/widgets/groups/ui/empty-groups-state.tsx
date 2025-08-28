@@ -1,27 +1,20 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Plus, LogIn as LogInIcon } from "lucide-react";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Plus, LogIn as LogInIcon } from 'lucide-react';
 
 interface EmptyGroupsStateProps {
   onCreateGroup: () => void;
   onJoinGroup: () => void;
 }
 
-export function EmptyGroupsState({
-  onCreateGroup,
-  onJoinGroup,
-}: EmptyGroupsStateProps) {
+export function EmptyGroupsState({ onCreateGroup, onJoinGroup }: EmptyGroupsStateProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-16">
       <div className="bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl px-16 py-20 text-center">
-        <p className="text-lg text-stone-400 mt-4">
-          아직 참여한 그룹이 없습니다
-        </p>
-        <p className="text-base text-stone-500 mt-2">
-          새 그룹을 만들거나 초대 코드로 그룹에 참여해보세요
-        </p>
+        <p className="text-lg text-stone-400 mt-4">아직 참여한 그룹이 없습니다</p>
+        <p className="text-base text-stone-500 mt-2">새 그룹을 만들거나 초대 코드로 그룹에 참여해보세요</p>
       </div>
 
       <div className="grid grid-cols-2 gap-6">
@@ -39,9 +32,7 @@ export function EmptyGroupsState({
               <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-stone-200 transition-colors">
                 그룹 생성
               </h3>
-              <p className="text-stone-400 leading-relaxed">
-                새로운 그룹을 만들어보세요
-              </p>
+              <p className="text-stone-400 leading-relaxed">새로운 그룹을 만들어보세요</p>
             </div>
           </div>
         </motion.div>
@@ -60,9 +51,7 @@ export function EmptyGroupsState({
               <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-stone-200 transition-colors">
                 그룹 참가
               </h3>
-              <p className="text-stone-400 leading-relaxed">
-                초대 코드로 참여하세요
-              </p>
+              <p className="text-stone-400 leading-relaxed">초대 코드로 참여하세요</p>
             </div>
           </div>
         </motion.div>

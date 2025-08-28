@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { FolderOpen } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { FolderOpen } from 'lucide-react';
 
 interface MediaItem {
   _id: string;
@@ -38,10 +38,12 @@ export function MediaGridWidget() {
   const fetchMedia = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch("/api/media?limit=10", {
-        headers: token ? {
-          'Authorization': `Bearer ${token}`
-        } : {}
+      const response = await fetch('/api/media?limit=10', {
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {},
       });
       const data = await response.json();
 
@@ -50,7 +52,7 @@ export function MediaGridWidget() {
       }
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching media:", error);
+      console.error('Error fetching media:', error);
       setLoading(false);
     }
   };
@@ -90,18 +92,10 @@ export function MediaGridWidget() {
             >
               {item.isVideo ? (
                 <div className="relative w-full h-full flex items-center justify-center bg-stone-800">
-                  <video
-                    src={`/api/media/file/${item._id}`}
-                    className="w-full h-full object-cover"
-                    muted
-                  />
+                  <video src={`/api/media/file/${item._id}`} className="w-full h-full object-cover" muted />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                     <div className="bg-black/60 p-2 rounded-full">
-                      <svg
-                        className="w-6 h-6 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
                       </svg>
                     </div>
@@ -119,9 +113,7 @@ export function MediaGridWidget() {
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   {/* 업로더 이름 표시 */}
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
-                    <p className="text-xs text-white/80 truncate">
-                      {item.group?.name || "김승찬"}
-                    </p>
+                    <p className="text-xs text-white/80 truncate">{item.group?.name || '김승찬'}</p>
                   </div>
                 </div>
               )}
@@ -132,12 +124,7 @@ export function MediaGridWidget() {
         {media.length === 0 && (
           <div className="text-center py-12">
             <div className="inline-flex w-16 h-16 items-center justify-center bg-stone-800/50 rounded-2xl mb-4">
-              <svg
-                className="w-8 h-8 text-stone-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-8 h-8 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -146,9 +133,7 @@ export function MediaGridWidget() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
-              아직 업로드한 사진이 없네요
-            </h3>
+            <h3 className="text-lg font-semibold text-white mb-2">아직 업로드한 사진이 없네요</h3>
             <p className="text-sm text-stone-400 max-w-sm mx-auto">
               그룹을 만들고 사진을 업로드해보세요.
               <br />
@@ -173,18 +158,8 @@ export function MediaGridWidget() {
               onClick={closeModal}
               className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
             >
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
@@ -218,23 +193,17 @@ export function MediaGridWidget() {
                 <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-sm rounded-xl p-4 text-white">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">
-                        {selectedMedia.originalName}
-                      </h3>
+                      <h3 className="font-semibold text-lg mb-1">{selectedMedia.originalName}</h3>
                       <div className="flex items-center gap-4 text-sm text-white/80">
                         <span>
                           {selectedMedia.metadata?.dateTaken
                             ? new Date(selectedMedia.metadata.dateTaken).toLocaleString('ko-KR')
                             : new Date(selectedMedia.uploadedAt).toLocaleString('ko-KR')}
                         </span>
-                        {selectedMedia.group && (
-                          <span className="text-white/60">
-                            {selectedMedia.group.name}
-                          </span>
-                        )}
+                        {selectedMedia.group && <span className="text-white/60">{selectedMedia.group.name}</span>}
                       </div>
                     </div>
-                    
+
                     {selectedMedia.group && (
                       <motion.button
                         whileHover={{ scale: 1.05 }}

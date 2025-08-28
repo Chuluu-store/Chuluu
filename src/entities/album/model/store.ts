@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
-import { Album } from "./types";
+import { Album } from './types';
 
 interface AlbumState {
   // Data
@@ -44,20 +44,14 @@ export const useAlbumStore = create<AlbumState>()(
 
       updateAlbum: (id, updates) =>
         set((state) => ({
-          albums: state.albums.map((album) =>
-            album.id === id ? { ...album, ...updates } : album
-          ),
-          currentAlbum:
-            state.currentAlbum?.id === id
-              ? { ...state.currentAlbum, ...updates }
-              : state.currentAlbum,
+          albums: state.albums.map((album) => (album.id === id ? { ...album, ...updates } : album)),
+          currentAlbum: state.currentAlbum?.id === id ? { ...state.currentAlbum, ...updates } : state.currentAlbum,
         })),
 
       removeAlbum: (id) =>
         set((state) => ({
           albums: state.albums.filter((album) => album.id !== id),
-          currentAlbum:
-            state.currentAlbum?.id === id ? null : state.currentAlbum,
+          currentAlbum: state.currentAlbum?.id === id ? null : state.currentAlbum,
         })),
 
       setCurrentAlbum: (album) => set({ currentAlbum: album }),
@@ -66,6 +60,6 @@ export const useAlbumStore = create<AlbumState>()(
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
     }),
-    { name: "album-store" }
+    { name: 'album-store' }
   )
 );

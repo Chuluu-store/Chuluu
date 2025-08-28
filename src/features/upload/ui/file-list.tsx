@@ -1,14 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  FileImage, 
-  FileVideo, 
-  AlertCircle, 
-  CheckCircle, 
-  Loader2,
-  RefreshCw 
-} from 'lucide-react';
+import { X, FileImage, FileVideo, AlertCircle, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
 import { UploadFile } from '../model/upload-types';
 import { formatFileSize } from '../lib/upload-utils';
 
@@ -20,10 +12,12 @@ interface FileListProps {
 }
 
 const getFileIcon = (file: File, previewUrl?: string) => {
-  const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || 
-                 file.name.toLowerCase().endsWith('.heic') || 
-                 file.name.toLowerCase().endsWith('.heif');
-  
+  const isHeic =
+    file.type === 'image/heic' ||
+    file.type === 'image/heif' ||
+    file.name.toLowerCase().endsWith('.heic') ||
+    file.name.toLowerCase().endsWith('.heif');
+
   if (file.type.startsWith('image/') || isHeic) {
     // HEIC 파일이고 미리보기 URL이 있으면 썸네일 표시
     if (previewUrl && isHeic) {
@@ -68,19 +62,13 @@ export function FileList({ files, isUploading, onRemoveFile, onRetryFile }: File
             className="flex items-center gap-4 p-4 bg-stone-900/40 backdrop-blur-sm border border-stone-700/50 rounded-xl hover:bg-stone-900/60 transition-all duration-200"
           >
             {/* 파일 아이콘 */}
-            <div className="flex-shrink-0">
-              {getFileIcon(uploadFile.file, uploadFile.previewUrl)}
-            </div>
+            <div className="flex-shrink-0">{getFileIcon(uploadFile.file, uploadFile.previewUrl)}</div>
 
             {/* 파일 정보 */}
             <div className="flex-grow min-w-0">
-              <div className="font-medium text-white truncate mb-1">
-                {uploadFile.file.name}
-              </div>
-              <div className="text-sm text-stone-400 mb-2">
-                {formatFileSize(uploadFile.file.size)}
-              </div>
-              
+              <div className="font-medium text-white truncate mb-1">{uploadFile.file.name}</div>
+              <div className="text-sm text-stone-400 mb-2">{formatFileSize(uploadFile.file.size)}</div>
+
               {/* 진행률 바 */}
               {uploadFile.status === 'uploading' && (
                 <div className="mt-2">
@@ -103,9 +91,7 @@ export function FileList({ files, isUploading, onRemoveFile, onRetryFile }: File
               {uploadFile.status === 'failed' && uploadFile.error && (
                 <div className="mt-2">
                   <div className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <div className="text-xs text-red-400">
-                      {uploadFile.error}
-                    </div>
+                    <div className="text-xs text-red-400">{uploadFile.error}</div>
                   </div>
                   {onRetryFile && (
                     <button
@@ -121,16 +107,12 @@ export function FileList({ files, isUploading, onRemoveFile, onRetryFile }: File
 
               {/* 완료 메시지 */}
               {uploadFile.status === 'completed' && (
-                <div className="mt-2 text-xs text-green-400 font-medium">
-                  업로드 완료
-                </div>
+                <div className="mt-2 text-xs text-green-400 font-medium">업로드 완료</div>
               )}
             </div>
 
             {/* 상태 아이콘 */}
-            <div className="flex-shrink-0">
-              {getStatusIcon(uploadFile.status)}
-            </div>
+            <div className="flex-shrink-0">{getStatusIcon(uploadFile.status)}</div>
 
             {/* 삭제 버튼 */}
             {!isUploading && (

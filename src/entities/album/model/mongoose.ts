@@ -1,5 +1,5 @@
-import { Schema, model, models } from "mongoose";
-import { Album } from "./types";
+import { Schema, model, models } from 'mongoose';
+import { Album } from './types';
 
 const AlbumSchema = new Schema<Album>({
   name: { type: String, required: true, trim: true },
@@ -13,7 +13,7 @@ const AlbumSchema = new Schema<Album>({
 });
 
 // Update the updatedAt field on save
-AlbumSchema.pre("save", function () {
+AlbumSchema.pre('save', function () {
   this.updatedAt = new Date();
 });
 
@@ -23,10 +23,8 @@ AlbumSchema.index({ isPublic: 1 });
 
 // Generate share token when needed
 AlbumSchema.methods.generateShareToken = function () {
-  this.shareToken =
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15);
+  this.shareToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   return this.shareToken;
 };
 
-export const AlbumModel = models.Album || model<Album>("Album", AlbumSchema);
+export const AlbumModel = models.Album || model<Album>('Album', AlbumSchema);

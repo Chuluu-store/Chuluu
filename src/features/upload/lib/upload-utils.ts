@@ -13,27 +13,62 @@ export const isValidFileType = (file: File): boolean => {
   const extension = file.name.toLowerCase().split('.').pop();
   const allowedExtensions = [
     // 이미지 확장자
-    'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'tif', 'svg', 'heic', 'heif',
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'webp',
+    'bmp',
+    'tiff',
+    'tif',
+    'svg',
+    'heic',
+    'heif',
     // 비디오 확장자
-    'mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv', 'webm', '3gp', 'm4v'
+    'mp4',
+    'avi',
+    'mov',
+    'mkv',
+    'wmv',
+    'flv',
+    'webm',
+    '3gp',
+    'm4v',
   ];
-  
+
   // 확장자로 먼저 체크
   if (allowedExtensions.includes(extension || '')) {
     return true;
   }
-  
+
   // MIME 타입으로도 체크
   const allowedTypes = [
     // 이미지 형식
-    'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 
-    'image/bmp', 'image/tiff', 'image/svg+xml', 'image/heic', 'image/heif',
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/bmp',
+    'image/tiff',
+    'image/svg+xml',
+    'image/heic',
+    'image/heif',
     // 비디오 형식
-    'video/mp4', 'video/avi', 'video/mov', 'video/quicktime', 
-    'video/mkv', 'video/wmv', 'video/flv', 'video/webm', 
-    'video/3gp', 'video/m4v', 'video/x-msvideo', 'video/x-matroska'
+    'video/mp4',
+    'video/avi',
+    'video/mov',
+    'video/quicktime',
+    'video/mkv',
+    'video/wmv',
+    'video/flv',
+    'video/webm',
+    'video/3gp',
+    'video/m4v',
+    'video/x-msvideo',
+    'video/x-matroska',
   ];
-  
+
   return file.type ? allowedTypes.includes(file.type.toLowerCase()) : false;
 };
 

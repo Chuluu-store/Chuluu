@@ -1,1 +1,1 @@
-export { GroupsPage } from "./ui/groups-page";
+export { GroupsPage } from './ui/groups-page';

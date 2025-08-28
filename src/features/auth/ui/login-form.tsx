@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import React, { useState } from "react";
-import { User, Lock, Mail, ArrowRight } from "lucide-react";
+import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { User, Lock, Mail, ArrowRight } from 'lucide-react';
 
 interface LoginFormProps {
   onSuccess?: (data: any) => void;
@@ -11,50 +11,50 @@ interface LoginFormProps {
 export function LoginForm({ onSuccess }: LoginFormProps) {
   const [isRegister, setIsRegister] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       // 회원가입 시 비밀번호 확인 검증
       if (isRegister && formData.password !== formData.confirmPassword) {
-        throw new Error("비밀번호가 일치하지 않습니다");
+        throw new Error('비밀번호가 일치하지 않습니다');
       }
 
-      const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
+      const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
       const body = isRegister
         ? {
-            username: formData.name || formData.email.split("@")[0],
+            username: formData.name || formData.email.split('@')[0],
             email: formData.email,
             password: formData.password,
           }
         : { email: formData.email, password: formData.password };
 
       const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "오류가 발생했습니다");
+        throw new Error(data.error || '오류가 발생했습니다');
       }
 
       // 토큰 저장
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
 
       if (onSuccess) {
         onSuccess(data);
@@ -68,11 +68,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <div className="px-6 py-8 pb-32">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg mx-auto"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg mx-auto">
         {/* 심플한 헤더 */}
         <div className="text-center mb-8">
           <motion.h1
@@ -81,7 +77,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             transition={{ delay: 0.1 }}
             className="text-3xl font-bold text-white mb-3"
           >
-            {isRegister ? "회원가입" : "로그인"}
+            {isRegister ? '회원가입' : '로그인'}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -89,9 +85,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             transition={{ delay: 0.2 }}
             className="text-stone-400 text-base leading-relaxed"
           >
-            {isRegister
-              ? "Chuluu에서 사진을 공유해보세요"
-              : "계정에 로그인하여 계속하세요"}
+            {isRegister ? 'Chuluu에서 사진을 공유해보세요' : '계정에 로그인하여 계속하세요'}
           </motion.p>
         </div>
 
@@ -106,9 +100,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             {/* 이름 (회원가입시만) */}
             {isRegister && (
               <div className="space-y-4">
-                <label className="block text-base font-medium text-stone-300 px-2">
-                  이름
-                </label>
+                <label className="block text-base font-medium text-stone-300 px-2">이름</label>
                 <div className="flex items-center bg-stone-900/50 rounded-2xl p-1 focus-within:bg-stone-800/60 transition-all duration-300">
                   <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                     <User className="w-5 h-5 text-stone-500" />
@@ -116,9 +108,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="flex-1 bg-transparent px-3 py-4 text-white placeholder-stone-500 text-base focus:placeholder-stone-400 focus:outline-none border-none"
                     placeholder="이름을 입력하세요"
                     required
@@ -129,9 +119,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
             {/* 이메일 */}
             <div className="space-y-4">
-              <label className="block text-base font-medium text-stone-300 px-2">
-                이메일
-              </label>
+              <label className="block text-base font-medium text-stone-300 px-2">이메일</label>
               <div className="flex items-center bg-stone-900/50 rounded-2xl p-1 focus-within:bg-stone-800/60 transition-all duration-300">
                 <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                   <Mail className="w-5 h-5 text-stone-500" />
@@ -139,9 +127,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="flex-1 bg-transparent px-3 py-4 text-white placeholder-stone-500 text-base focus:placeholder-stone-400 focus:outline-none border-none"
                   placeholder="이메일을 입력하세요"
                   required
@@ -151,9 +137,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
             {/* 비밀번호 */}
             <div className="space-y-4">
-              <label className="block text-base font-medium text-stone-300 px-2">
-                비밀번호
-              </label>
+              <label className="block text-base font-medium text-stone-300 px-2">비밀번호</label>
               <div className="flex items-center bg-stone-900/50 rounded-2xl p-1 focus-within:bg-stone-800/60 transition-all duration-300">
                 <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                   <Lock className="w-5 h-5 text-stone-500" />
@@ -161,9 +145,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 <input
                   type="password"
                   value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="flex-1 bg-transparent px-3 py-4 text-white placeholder-stone-500 text-base focus:placeholder-stone-400 focus:outline-none border-none"
                   placeholder="비밀번호를 입력하세요"
                   required
@@ -175,9 +157,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             {/* 비밀번호 확인 (회원가입시만) */}
             {isRegister && (
               <div className="space-y-4">
-                <label className="block text-base font-medium text-stone-300 px-2">
-                  비밀번호 확인
-                </label>
+                <label className="block text-base font-medium text-stone-300 px-2">비밀번호 확인</label>
                 <div className="flex items-center bg-stone-900/50 rounded-2xl p-1 focus-within:bg-stone-800/60 transition-all duration-300">
                   <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                     <Lock className="w-5 h-5 text-stone-500" />
@@ -226,7 +206,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 </div>
               ) : (
                 <div className="flex items-center justify-center space-x-3">
-                  <span>{isRegister ? "계정 만들기" : "로그인"}</span>
+                  <span>{isRegister ? '계정 만들기' : '로그인'}</span>
                   <ArrowRight className="w-5 h-5" />
                 </div>
               )}
@@ -239,9 +219,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               onClick={() => setIsRegister(!isRegister)}
               className="w-full text-center text-stone-400 hover:text-white transition-colors text-sm py-3"
             >
-              {isRegister
-                ? "이미 계정이 있으신가요? 로그인"
-                : "계정이 없으신가요? 회원가입"}
+              {isRegister ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
             </button>
           </div>
         </motion.div>

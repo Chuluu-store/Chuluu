@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-import { Button } from "../../../shared/ui";
-import { validateAlbumName } from "../../../shared/lib";
-import { useCreateAlbum } from "../../../entities/album";
+import { Button } from '../../../shared/ui';
+import { validateAlbumName } from '../../../shared/lib';
+import { useCreateAlbum } from '../../../entities/album';
 
 interface CreateAlbumModalProps {
   isOpen: boolean;
@@ -13,26 +13,22 @@ interface CreateAlbumModalProps {
   onSuccess?: (albumId: string) => void;
 }
 
-export function CreateAlbumModal({
-  isOpen,
-  onClose,
-  onSuccess,
-}: CreateAlbumModalProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+export function CreateAlbumModal({ isOpen, onClose, onSuccess }: CreateAlbumModalProps) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const createAlbumMutation = useCreateAlbum();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     // Validate name
     const validation = validateAlbumName(name);
     if (!validation.isValid) {
-      setError(validation.error || "");
+      setError(validation.error || '');
       return;
     }
 
@@ -46,17 +42,15 @@ export function CreateAlbumModal({
       onSuccess?.(album.id);
       handleClose();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "앨범 생성에 실패했습니다."
-      );
+      setError(err instanceof Error ? err.message : '앨범 생성에 실패했습니다.');
     }
   };
 
   const handleClose = () => {
-    setName("");
-    setDescription("");
+    setName('');
+    setDescription('');
     setIsPublic(false);
-    setError("");
+    setError('');
     onClose();
   };
 
@@ -78,15 +72,11 @@ export function CreateAlbumModal({
           className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            새 앨범 만들기
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">새 앨범 만들기</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                앨범 이름 *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">앨범 이름 *</label>
               <input
                 type="text"
                 value={name}
@@ -98,9 +88,7 @@ export function CreateAlbumModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                설명
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">설명</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -123,26 +111,13 @@ export function CreateAlbumModal({
               </label>
             </div>
 
-            {error && (
-              <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
-                {error}
-              </div>
-            )}
+            {error && <div className="text-red-600 text-sm bg-red-50 p-3 rounded">{error}</div>}
 
             <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                className="flex-1"
-              >
+              <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
                 취소
               </Button>
-              <Button
-                type="submit"
-                loading={createAlbumMutation.isPending}
-                className="flex-1"
-              >
+              <Button type="submit" loading={createAlbumMutation.isPending} className="flex-1">
                 만들기
               </Button>
             </div>

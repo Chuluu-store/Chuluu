@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { ErrorBoundary } from "../shared/ui";
+import { ErrorBoundary } from '../shared/ui';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -13,10 +13,7 @@ const queryClient = new QueryClient({
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors except for 408, 429
         if (error?.response?.status >= 400 && error?.response?.status < 500) {
-          if (
-            error?.response?.status === 408 ||
-            error?.response?.status === 429
-          ) {
+          if (error?.response?.status === 408 || error?.response?.status === 429) {
             return failureCount < 3;
           }
           return false;

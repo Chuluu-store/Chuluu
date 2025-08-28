@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
-import { User, UserPreferences } from "./types";
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+import { User, UserPreferences } from './types';
 
 interface UserState {
   // Data
@@ -15,9 +15,9 @@ interface UserState {
 }
 
 const defaultPreferences: UserPreferences = {
-  theme: "system",
-  language: "ko",
-  gridSize: "medium",
+  theme: 'system',
+  language: 'ko',
+  gridSize: 'medium',
   autoUpload: false,
   showMetadata: false,
 };
@@ -51,12 +51,12 @@ export const useUserStore = create<UserState>()(
           }),
       }),
       {
-        name: "user-store",
+        name: 'user-store',
         partialize: (state) => ({
           preferences: state.preferences,
         }),
       }
     ),
-    { name: "user-store" }
+    { name: 'user-store' }
   )
 );

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Plus } from "lucide-react";
+import React from 'react';
+import { Plus } from 'lucide-react';
 
-import { GroupCard, type Group } from "../../../entities/group";
-import { CreateGroupCard } from "../../../features/create-group";
+import { GroupCard, type Group } from '../../../entities/group';
+import { CreateGroupCard } from '../../../features/create-group';
 
 interface GroupsListProps {
   groups: Group[];
@@ -12,17 +12,11 @@ interface GroupsListProps {
   onGroupClick: (group: Group) => void;
 }
 
-export function GroupsList({
-  groups,
-  onCreateGroup,
-  onGroupClick,
-}: GroupsListProps) {
+export function GroupsList({ groups, onCreateGroup, onGroupClick }: GroupsListProps) {
   return (
     <div className="space-y-12">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-white">
-          내 그룹 ({groups.length})
-        </h2>
+        <h2 className="text-2xl font-semibold text-white">내 그룹 ({groups.length})</h2>
         <button
           onClick={onCreateGroup}
           className="text-base text-stone-400 hover:text-white transition-colors flex items-center space-x-2"
@@ -35,11 +29,7 @@ export function GroupsList({
       <div className="grid gap-8">
         <CreateGroupCard onClick={onCreateGroup} />
         {groups.map((group) => (
-          <GroupCard
-            key={group.id}
-            group={group}
-            onClick={() => onGroupClick(group)}
-          />
+          <GroupCard key={group.id} group={group} onClick={() => onGroupClick(group)} />
         ))}
       </div>
     </div>

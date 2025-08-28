@@ -23,7 +23,7 @@ export interface Media {
   mimeType: string;
   size: number;
   path: string;
-  type: "image" | "video";
+  type: 'image' | 'video';
   metadata: MediaMetadata;
   thumbnails: MediaThumbnail;
   albumId?: string;
@@ -35,13 +35,13 @@ export interface Media {
 export interface MediaUpload {
   file: File;
   progress: number;
-  status: "pending" | "uploading" | "processing" | "completed" | "error";
+  status: 'pending' | 'uploading' | 'processing' | 'completed' | 'error';
   error?: string;
   mediaId?: string;
 }
 
 export type MediaFilter = {
-  type?: "image" | "video";
+  type?: 'image' | 'video';
   albumId?: string;
   dateFrom?: Date;
   dateTo?: Date;
@@ -50,4 +50,4 @@ export type MediaFilter = {
   limit?: number;
 };
 
-export type MediaSort = "newest" | "oldest" | "name" | "size";
+export type MediaSort = 'newest' | 'oldest' | 'name' | 'size';

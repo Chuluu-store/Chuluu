@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IUploadSession extends Document {
   sessionId: string;
@@ -7,19 +7,13 @@ export interface IUploadSession extends Document {
   totalFiles: number;
   completedFiles: number;
   failedFiles: number;
-  status:
-    | "initializing"
-    | "uploading"
-    | "processing"
-    | "completed"
-    | "failed"
-    | "cancelled";
+  status: 'initializing' | 'uploading' | 'processing' | 'completed' | 'failed' | 'cancelled';
   startedAt: Date;
   completedAt?: Date;
   files: {
     originalName: string;
     size: number;
-    status: "pending" | "uploading" | "processing" | "completed" | "failed";
+    status: 'pending' | 'uploading' | 'processing' | 'completed' | 'failed';
     mediaId?: mongoose.Types.ObjectId;
     error?: string;
     progress?: number;
@@ -40,12 +34,12 @@ const UploadSessionSchema = new Schema<IUploadSession>(
     },
     groupId: {
       type: Schema.Types.ObjectId,
-      ref: "Group",
+      ref: 'Group',
       required: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     totalFiles: {
@@ -62,15 +56,8 @@ const UploadSessionSchema = new Schema<IUploadSession>(
     },
     status: {
       type: String,
-      enum: [
-        "initializing",
-        "uploading",
-        "processing",
-        "completed",
-        "failed",
-        "cancelled",
-      ],
-      default: "initializing",
+      enum: ['initializing', 'uploading', 'processing', 'completed', 'failed', 'cancelled'],
+      default: 'initializing',
     },
     startedAt: {
       type: Date,
@@ -85,10 +72,10 @@ const UploadSessionSchema = new Schema<IUploadSession>(
         size: { type: Number, required: true },
         status: {
           type: String,
-          enum: ["pending", "uploading", "processing", "completed", "failed"],
-          default: "pending",
+          enum: ['pending', 'uploading', 'processing', 'completed', 'failed'],
+          default: 'pending',
         },
-        mediaId: { type: Schema.Types.ObjectId, ref: "Media" },
+        mediaId: { type: Schema.Types.ObjectId, ref: 'Media' },
         error: String,
         progress: { type: Number, default: 0 },
       },
@@ -111,8 +98,4 @@ UploadSessionSchema.index({ status: 1 });
 
 export const UploadSession =
   mongoose.models.UploadSession ||
-  mongoose.model<IUploadSession>(
-    "UploadSession",
-    UploadSessionSchema,
-    "upload_sessions"
-  );
+  mongoose.model<IUploadSession>('UploadSession', UploadSessionSchema, 'upload_sessions');

@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IMedia extends Document {
   filename: string;
@@ -23,7 +23,7 @@ export interface IMedia extends Document {
       longitude?: number;
     }; // GPS 정보
   };
-  status: "uploading" | "processing" | "completed" | "failed";
+  status: 'uploading' | 'processing' | 'completed' | 'failed';
   error?: string;
 }
 
@@ -54,12 +54,12 @@ const MediaSchema = new Schema<IMedia>(
     },
     groupId: {
       type: Schema.Types.ObjectId,
-      ref: "Group",
+      ref: 'Group',
       required: true,
     },
     uploadedBy: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     uploadedAt: {
@@ -81,8 +81,8 @@ const MediaSchema = new Schema<IMedia>(
     },
     status: {
       type: String,
-      enum: ["uploading", "processing", "completed", "failed"],
-      default: "uploading",
+      enum: ['uploading', 'processing', 'completed', 'failed'],
+      default: 'uploading',
     },
     error: {
       type: String,
@@ -94,11 +94,9 @@ const MediaSchema = new Schema<IMedia>(
 );
 
 // 인덱스 설정
-MediaSchema.index({ groupId: 1, "metadata.takenAt": -1 }); // 촬영날짜 기준 정렬
+MediaSchema.index({ groupId: 1, 'metadata.takenAt': -1 }); // 촬영날짜 기준 정렬
 MediaSchema.index({ groupId: 1, uploadedAt: -1 }); // 업로드날짜 기준 정렬
 MediaSchema.index({ uploadedBy: 1, uploadedAt: -1 });
 MediaSchema.index({ status: 1 });
 
-export const Media =
-  mongoose.models.Media ||
-  mongoose.model<IMedia>("Media", MediaSchema, "photo_media");
+export const Media = mongoose.models.Media || mongoose.model<IMedia>('Media', MediaSchema, 'photo_media');

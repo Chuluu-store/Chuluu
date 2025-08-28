@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { LogIn as LogInIcon } from "lucide-react";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { LogIn as LogInIcon } from 'lucide-react';
 
 interface LoginPromptProps {
   onLogin: () => void;
@@ -21,9 +21,7 @@ export function LoginPrompt({ onLogin }: LoginPromptProps) {
         </div>
 
         <div>
-          <h2 className="text-3xl font-bold text-white mb-4">
-            로그인이 필요합니다
-          </h2>
+          <h2 className="text-3xl font-bold text-white mb-4">로그인이 필요합니다</h2>
           <p className="text-xl text-stone-300 leading-relaxed max-w-md mx-auto">
             그룹을 생성하고 관리하려면 로그인해주세요
           </p>

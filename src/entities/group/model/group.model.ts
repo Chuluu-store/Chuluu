@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IGroup extends Document {
   name: string;
@@ -32,19 +32,19 @@ const GroupSchema = new Schema<IGroup>(
     },
     owner: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     members: [
       {
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
     media: [
       {
         type: Schema.Types.ObjectId,
-        ref: "Media",
+        ref: 'Media',
       },
     ],
     mediaCount: {
@@ -59,8 +59,8 @@ const GroupSchema = new Schema<IGroup>(
 
 // 초대 코드 생성 함수
 function generateInviteCode(): string {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
   for (let i = 0; i < 6; i++) {
     code += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -70,7 +70,7 @@ function generateInviteCode(): string {
 // 고유한 초대 코드 생성 함수
 async function generateUniqueInviteCode(): Promise<string> {
   const Group = mongoose.models.Group;
-  let code = "";
+  let code = '';
   let isUnique = false;
   let attempts = 0;
   const maxAttempts = 10;
@@ -97,13 +97,11 @@ async function generateUniqueInviteCode(): Promise<string> {
   return code;
 }
 
-GroupSchema.pre("save", async function (next) {
+GroupSchema.pre('save', async function (next) {
   if (this.isNew && !this.inviteCode) {
     this.inviteCode = await generateUniqueInviteCode();
   }
   next();
 });
 
-export const Group =
-  mongoose.models.Group ||
-  mongoose.model<IGroup>("Group", GroupSchema, "photo_groups");
+export const Group = mongoose.models.Group || mongoose.model<IGroup>('Group', GroupSchema, 'photo_groups');

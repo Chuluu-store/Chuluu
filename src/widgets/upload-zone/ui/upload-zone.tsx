@@ -1,18 +1,11 @@
-"use client";
+'use client';
 
-import React, { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Upload,
-  Camera,
-  Image as ImageIcon,
-  Video,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Upload, Camera, Image as ImageIcon, Video, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface UploadStatus {
-  status: "idle" | "uploading" | "success" | "error";
+  status: 'idle' | 'uploading' | 'success' | 'error';
   progress: number;
   message: string;
 }
@@ -24,9 +17,9 @@ interface UploadZoneProps {
 export function UploadZone({ groupId }: UploadZoneProps = {}) {
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
-    status: "idle",
+    status: 'idle',
     progress: 0,
-    message: "",
+    message: '',
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,14 +29,14 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
 
     setUploading(true);
     setUploadStatus({
-      status: "uploading",
+      status: 'uploading',
       progress: 0,
       message: `${files.length}개 파일 업로드 중...`,
     });
 
     const formData = new FormData();
     Array.from(files).forEach((file) => {
-      formData.append("files", file);
+      formData.append('files', file);
     });
 
     // 진행률 시뮬레이션
@@ -55,19 +48,19 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
     }, 500);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const headers: HeadersInit = {};
 
       if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
+        headers['Authorization'] = `Bearer ${token}`;
       }
 
       if (groupId) {
-        headers["X-Group-Id"] = groupId;
+        headers['X-Group-Id'] = groupId;
       }
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
+      const response = await fetch('/api/upload', {
+        method: 'POST',
         headers,
         body: formData,
       });
@@ -77,7 +70,7 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
       if (response.ok) {
         await response.json();
         setUploadStatus({
-          status: "success",
+          status: 'success',
           progress: 100,
           message: `${files.length}개 파일이 성공적으로 업로드되었습니다!`,
         });
@@ -86,23 +79,23 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
           window.location.reload();
         }, 2000);
       } else {
-        throw new Error("업로드 실패");
+        throw new Error('업로드 실패');
       }
     } catch (error) {
       clearInterval(progressInterval);
       setUploadStatus({
-        status: "error",
+        status: 'error',
         progress: 0,
-        message: "업로드 중 오류가 발생했습니다.",
+        message: '업로드 중 오류가 발생했습니다.',
       });
     } finally {
       setTimeout(() => {
         setUploading(false);
-        setUploadStatus({ status: "idle", progress: 0, message: "" });
+        setUploadStatus({ status: 'idle', progress: 0, message: '' });
       }, 3000);
 
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
     }
   };
@@ -127,7 +120,7 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
       />
 
       <AnimatePresence mode="wait">
-        {uploadStatus.status === "idle" && (
+        {uploadStatus.status === 'idle' && (
           <motion.div
             key="upload-button"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -147,7 +140,7 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
           </motion.div>
         )}
 
-        {uploadStatus.status === "uploading" && (
+        {uploadStatus.status === 'uploading' && (
           <motion.div
             key="uploading"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -158,19 +151,15 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
             <div className="flex items-center space-x-3">
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 className="text-blue-400"
               >
                 <Camera className="w-4 h-4" />
               </motion.div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-blue-400">
-                    업로드 중
-                  </span>
-                  <span className="text-xs text-blue-400">
-                    {Math.round(uploadStatus.progress)}%
-                  </span>
+                  <span className="text-xs font-medium text-blue-400">업로드 중</span>
+                  <span className="text-xs text-blue-400">{Math.round(uploadStatus.progress)}%</span>
                 </div>
                 <div className="w-full bg-blue-900/30 rounded-full h-1.5">
                   <motion.div
@@ -185,7 +174,7 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
           </motion.div>
         )}
 
-        {uploadStatus.status === "success" && (
+        {uploadStatus.status === 'success' && (
           <motion.div
             key="success"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -195,15 +184,13 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
           >
             <div className="flex items-center space-x-2">
               <CheckCircle className="w-4 h-4 text-green-400" />
-              <span className="text-sm font-medium text-green-400">
-                업로드 완료!
-              </span>
+              <span className="text-sm font-medium text-green-400">업로드 완료!</span>
             </div>
             <p className="text-xs text-gray-400 mt-1">{uploadStatus.message}</p>
           </motion.div>
         )}
 
-        {uploadStatus.status === "error" && (
+        {uploadStatus.status === 'error' && (
           <motion.div
             key="error"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -213,9 +200,7 @@ export function UploadZone({ groupId }: UploadZoneProps = {}) {
           >
             <div className="flex items-center space-x-2">
               <AlertCircle className="w-4 h-4 text-red-400" />
-              <span className="text-sm font-medium text-red-400">
-                업로드 실패
-              </span>
+              <span className="text-sm font-medium text-red-400">업로드 실패</span>
             </div>
             <p className="text-xs text-gray-400 mt-1">{uploadStatus.message}</p>
           </motion.div>

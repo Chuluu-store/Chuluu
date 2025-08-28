@@ -1,4 +1,4 @@
-import { Album, AlbumDocument } from "../types/album";
+import { Album, AlbumDocument } from '../types/album';
 
 export function transformAlbumDocument(doc: AlbumDocument): Album {
   return {

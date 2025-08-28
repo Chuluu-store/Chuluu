@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Users, Calendar, Image as ImageIcon } from "lucide-react";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Users, Calendar, Image as ImageIcon } from 'lucide-react';
 
-import { Group } from "../model/types";
+import { Group } from '../model/types';
 
 interface GroupCardProps {
   group: Group;
@@ -21,13 +21,9 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
     >
       <div className="flex items-start justify-between mb-6 sm:mb-8">
         <div className="flex-1">
-          <h3 className="text-xl sm:text-2xl font-medium text-white mb-2 sm:mb-3">
-            {group.name}
-          </h3>
+          <h3 className="text-xl sm:text-2xl font-medium text-white mb-2 sm:mb-3">{group.name}</h3>
           {group.description && (
-            <p className="text-sm sm:text-base text-stone-400 mb-3 sm:mb-4 leading-relaxed">
-              {group.description}
-            </p>
+            <p className="text-sm sm:text-base text-stone-400 mb-3 sm:mb-4 leading-relaxed">{group.description}</p>
           )}
         </div>
         <div className="p-3 sm:p-4 rounded-2xl bg-stone-700/50">
@@ -48,9 +44,7 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
         </div>
         <div className="flex items-center space-x-2 sm:space-x-3">
           <Calendar className="w-4 sm:w-5 h-4 sm:h-5" />
-          <span className="text-xs sm:text-sm">
-            {new Date(group.createdAt).toLocaleDateString()}
-          </span>
+          <span className="text-xs sm:text-sm">{new Date(group.createdAt).toLocaleDateString()}</span>
         </div>
       </div>
     </motion.div>

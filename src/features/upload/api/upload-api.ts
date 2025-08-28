@@ -1,29 +1,26 @@
 import { UploadSession } from '../model/upload-types';
 
 // 업로드 세션 생성
-export const createUploadSession = async (
-  groupId: string, 
-  files: File[]
-): Promise<UploadSession> => {
+export const createUploadSession = async (groupId: string, files: File[]): Promise<UploadSession> => {
   const token = localStorage.getItem('token');
   if (!token) throw new Error('인증이 필요합니다');
 
-  const fileData = files.map(file => ({
+  const fileData = files.map((file) => ({
     name: file.name,
     size: file.size,
-    type: file.type
+    type: file.type,
   }));
 
   const response = await fetch('/api/upload/session', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       groupId,
-      files: fileData
-    })
+      files: fileData,
+    }),
   });
 
   if (!response.ok) {
@@ -46,7 +43,7 @@ export const uploadFile = async (
     fileName: file.name,
     fileSize: file.size,
     groupId,
-    fileIndex
+    fileIndex,
   });
 
   const token = localStorage.getItem('token');

@@ -1,1 +1,1 @@
-export * from "./create-album-modal";
+export * from './create-album-modal';

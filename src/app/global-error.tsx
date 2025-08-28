@@ -1,18 +1,12 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { motion } from "framer-motion";
-import { AlertCircle, RefreshCcw, Home } from "lucide-react";
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { AlertCircle, RefreshCcw, Home } from 'lucide-react';
 
-export default function GlobalError({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
-    console.error("Global error:", error);
+    console.error('Global error:', error);
   }, [error]);
 
   return (
@@ -28,7 +22,7 @@ export default function GlobalError({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
+              transition={{ delay: 0.2, type: 'spring' }}
               className="w-28 h-28 mx-auto bg-red-600/20 rounded-full flex items-center justify-center"
             >
               <div className="w-24 h-24 bg-red-600/30 rounded-full flex items-center justify-center">
@@ -59,24 +53,16 @@ export default function GlobalError({
               </motion.p>
 
               {/* 개발 환경에서만 에러 상세 정보 표시 */}
-              {process.env.NODE_ENV === "development" && (
+              {process.env.NODE_ENV === 'development' && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
                   className="mt-6 p-6 bg-stone-800/50 border border-red-700/30 rounded-xl text-left"
                 >
-                  <p className="text-sm text-red-400 mb-3 font-medium">
-                    개발 모드 - 글로벌 에러 정보:
-                  </p>
-                  <code className="text-sm text-red-300 break-all block">
-                    {error.message}
-                  </code>
-                  {error.digest && (
-                    <p className="text-xs text-stone-500 mt-2">
-                      Error ID: {error.digest}
-                    </p>
-                  )}
+                  <p className="text-sm text-red-400 mb-3 font-medium">개발 모드 - 글로벌 에러 정보:</p>
+                  <code className="text-sm text-red-300 break-all block">{error.message}</code>
+                  {error.digest && <p className="text-xs text-stone-500 mt-2">Error ID: {error.digest}</p>}
                 </motion.div>
               )}
             </div>
@@ -102,7 +88,7 @@ export default function GlobalError({
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => (window.location.href = "/")}
+                  onClick={() => (window.location.href = '/')}
                   className="flex-1 flex items-center justify-center gap-2 py-4 bg-stone-700 hover:bg-stone-600 text-white font-semibold rounded-xl transition-all duration-200"
                 >
                   <Home className="w-5 h-5" />
@@ -116,9 +102,7 @@ export default function GlobalError({
                 transition={{ delay: 0.8 }}
                 className="bg-stone-800/30 border border-stone-700/30 rounded-xl p-4"
               >
-                <p className="text-sm text-stone-400 mb-2">
-                  문제가 계속 발생한다면:
-                </p>
+                <p className="text-sm text-stone-400 mb-2">문제가 계속 발생한다면:</p>
                 <ul className="text-xs text-stone-500 space-y-1 text-left">
                   <li>• 브라우저 캐시를 삭제해보세요</li>
                   <li>• 다른 브라우저에서 시도해보세요</li>

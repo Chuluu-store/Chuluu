@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { FileQuestion, Home, ArrowLeft } from "lucide-react";
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { FileQuestion, Home, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -16,7 +16,7 @@ export default function NotFound() {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring" }}
+          transition={{ delay: 0.2, type: 'spring' }}
           className="relative"
         >
           <div className="w-32 h-32 mx-auto bg-stone-800/50 rounded-full flex items-center justify-center">
@@ -64,9 +64,7 @@ export default function NotFound() {
           transition={{ delay: 0.5 }}
           className="bg-stone-800/30 border border-stone-700/30 rounded-2xl p-6 space-y-4"
         >
-          <h3 className="text-sm font-medium text-stone-300">
-            이런 페이지는 어떠세요?
-          </h3>
+          <h3 className="text-sm font-medium text-stone-300">이런 페이지는 어떠세요?</h3>
 
           <div className="space-y-2">
             <Link href="/">
@@ -76,9 +74,7 @@ export default function NotFound() {
                 className="flex items-center gap-3 p-3 bg-stone-700/30 hover:bg-stone-600/30 rounded-xl transition-all duration-200 group"
               >
                 <Home className="w-4 h-4 text-stone-400 group-hover:text-stone-300" />
-                <span className="text-sm text-stone-300 group-hover:text-white">
-                  홈 페이지
-                </span>
+                <span className="text-sm text-stone-300 group-hover:text-white">홈 페이지</span>
               </motion.div>
             </Link>
           </div>

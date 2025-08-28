@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Download, 
-  Share2, 
-  User, 
+import {
+  ArrowLeft,
+  Download,
+  Share2,
+  User,
   Calendar,
   Camera,
   MapPin,
@@ -17,16 +17,17 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Trash2
+  Trash2,
 } from 'lucide-react';
 import Image from 'next/image';
 import { GalleryFilter } from './gallery-filter';
+import { toast } from '../../../shared/lib/toast';
 
 interface MediaItem {
   id: string;
   filename: string;
   originalName: string;
-  path: string;  // 원본 파일 경로 추가
+  path: string; // 원본 파일 경로 추가
   mimeType: string;
   size: number;
   thumbnailPath?: string;
@@ -36,13 +37,13 @@ interface MediaItem {
     email: string;
   };
   uploadedAt: string;
-  createdAt?: string;  // 업로드 날짜
+  createdAt?: string; // 업로드 날짜
   takenAt: string;
   metadata: {
     width?: number;
     height?: number;
     duration?: number;
-    takenAt?: string;  // 메타데이터에서 촬영 날짜
+    takenAt?: string; // 메타데이터에서 촬영 날짜
     cameraMake?: string;
     cameraModel?: string;
     iso?: number;
@@ -80,14 +81,13 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
     sortBy: 'takenAt' as 'takenAt' | 'uploadedAt',
     order: 'desc' as 'desc' | 'asc',
     mediaType: 'all' as 'image' | 'video' | 'all',
-    cameraMake: undefined as string | undefined
+    cameraMake: undefined as string | undefined,
   });
   const [cameraOptions, setCameraOptions] = useState<string[]>([]);
   const [deletingMedia, setDeletingMedia] = useState<string | null>(null);
   const [mediaCounts, setMediaCounts] = useState({ images: 0, videos: 0 });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mediaToDelete, setMediaToDelete] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -102,17 +102,17 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       const params = new URLSearchParams({
         sortBy: filters.sortBy,
         order: filters.order,
-        limit: '200'
+        limit: '200',
       });
-      
+
       if (filters.mediaType && filters.mediaType !== 'all') {
         params.append('type', filters.mediaType);
       }
 
       const response = await fetch(`/api/groups/${groupId}/media?${params}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -121,34 +121,29 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
 
       const result = await response.json();
       setMediaGroups(result.data);
-      
+
       // 전체 미디어 배열 생성 (모달 네비게이션용)
       const flatMedia = result.data.reduce((acc: MediaItem[], group: DateGroup) => {
         return [...acc, ...group.media];
       }, []);
       setAllMedia(flatMedia);
-      
+
       // 카메라 옵션 추출
       const cameras = new Set<string>();
       flatMedia.forEach((item: MediaItem) => {
         if (item.metadata?.cameraMake) {
-          const cameraName = item.metadata.cameraModel 
+          const cameraName = item.metadata.cameraModel
             ? `${item.metadata.cameraMake} ${item.metadata.cameraModel}`
             : item.metadata.cameraMake;
           cameras.add(cameraName);
         }
       });
       setCameraOptions(Array.from(cameras).sort());
-      
-      // 미디어 타입별 카운트 계산
-      const imageCount = flatMedia.filter((item: MediaItem) => 
-        item.mimeType.startsWith('image/')
-      ).length;
-      const videoCount = flatMedia.filter((item: MediaItem) => 
-        item.mimeType.startsWith('video/')
-      ).length;
-      setMediaCounts({ images: imageCount, videos: videoCount });
 
+      // 미디어 타입별 카운트 계산
+      const imageCount = flatMedia.filter((item: MediaItem) => item.mimeType.startsWith('image/')).length;
+      const videoCount = flatMedia.filter((item: MediaItem) => item.mimeType.startsWith('video/')).length;
+      setMediaCounts({ images: imageCount, videos: videoCount });
     } catch (error) {
       console.error('미디어 로드 오류:', error);
     } finally {
@@ -160,15 +155,10 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
     loadMedia();
   }, [loadMedia]);
 
-  // 토스트 표시
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   // 미디어 클릭 핸들러
   const handleMediaClick = (media: MediaItem) => {
-    const index = allMedia.findIndex(item => item.id === media.id);
+    const index = allMedia.findIndex((item) => item.id === media.id);
     setSelectedIndex(index);
     setSelectedMedia(media);
   };
@@ -185,14 +175,14 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   // 이전/다음 미디어
   const navigateMedia = (direction: 'prev' | 'next') => {
     if (allMedia.length === 0) return;
-    
+
     let newIndex = selectedIndex;
     if (direction === 'prev') {
       newIndex = selectedIndex > 0 ? selectedIndex - 1 : allMedia.length - 1;
     } else {
       newIndex = selectedIndex < allMedia.length - 1 ? selectedIndex + 1 : 0;
     }
-    
+
     setSelectedIndex(newIndex);
     setSelectedMedia(allMedia[newIndex]);
     setIsVideoPlaying(false);
@@ -202,7 +192,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!selectedMedia) return;
-      
+
       switch (e.key) {
         case 'Escape':
           closeModal();
@@ -251,18 +241,20 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   // 미디어 다운로드 (HEIC 원본 보존)
   const handleDownloadMedia = async (media: MediaItem) => {
     try {
-      showToast('다운로드 중...', 'success');
-      
+      toast.info('다운로드 중...');
+
       // HEIC 파일의 경우 원본 다운로드를 위해 특별 처리
-      const isHeic = media.mimeType === 'image/heic' || media.mimeType === 'image/heif' ||
-                     media.originalName.toLowerCase().endsWith('.heic') ||
-                     media.originalName.toLowerCase().endsWith('.heif');
-      
+      const isHeic =
+        media.mimeType === 'image/heic' ||
+        media.mimeType === 'image/heif' ||
+        media.originalName.toLowerCase().endsWith('.heic') ||
+        media.originalName.toLowerCase().endsWith('.heif');
+
       // 원본 파일 다운로드 URL (HEIC는 변환하지 않음)
-      const downloadUrl = isHeic 
+      const downloadUrl = isHeic
         ? `/api/media/download/${media.id}` // 원본 다운로드 전용 엔드포인트
         : getOriginalUrl(media);
-      
+
       const response = await fetch(downloadUrl);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -273,30 +265,30 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      showToast('다운로드가 완료되었습니다', 'success');
+      toast.success('다운로드가 완료되었습니다');
     } catch (error) {
       console.error('다운로드 실패:', error);
-      showToast('다운로드에 실패했습니다', 'error');
+      toast.error('다운로드에 실패했습니다');
     }
   };
 
   // 미디어 공유
   const handleShareMedia = async (media: MediaItem) => {
     if (isSharing) return; // 이미 공유 중이면 무시
-    
+
     try {
       setIsSharing(true);
       const shareUrl = `${window.location.origin}/api/media/file/${media.id}`;
-      
+
       // 모바일에서 네이티브 공유 지원
       if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
         try {
           await navigator.share({
             title: media.originalName,
             text: `${media.originalName} 공유`,
-            url: shareUrl
+            url: shareUrl,
           });
-          showToast('공유가 완료되었습니다', 'success');
+          toast.success('공유가 완료되었습니다');
         } catch (err: any) {
           // 사용자가 공유를 취소한 경우
           if (err.name !== 'AbortError') {
@@ -306,11 +298,11 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       } else {
         // 데스크톱에서는 클립보드에 복사
         await navigator.clipboard.writeText(shareUrl);
-        showToast('링크가 클립보드에 복사되었습니다!', 'success');
+        toast.success('링크가 클립보드에 복사되었습니다!');
       }
     } catch (error) {
       console.error('공유 실패:', error);
-      showToast('공유에 실패했습니다', 'error');
+      toast.error('공유에 실패했습니다');
     } finally {
       setIsSharing(false);
     }
@@ -325,7 +317,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   // 미디어 삭제
   const handleDeleteMedia = async () => {
     if (!mediaToDelete) return;
-    
+
     try {
       setDeletingMedia(mediaToDelete);
       const token = localStorage.getItem('token');
@@ -334,8 +326,8 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       const response = await fetch(`/api/media/${mediaToDelete}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -345,10 +337,10 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       // 삭제 성공 시 갤러리 새로고침
       closeModal();
       loadMedia();
-      showToast('미디어가 삭제되었습니다', 'success');
+      toast.success('미디어가 삭제되었습니다');
     } catch (error) {
       console.error('미디어 삭제 오류:', error);
-      showToast('미디어 삭제에 실패했습니다', 'error');
+      toast.error('미디어 삭제에 실패했습니다');
     } finally {
       setDeletingMedia(null);
       setShowDeleteModal(false);
@@ -371,7 +363,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
     // 이미지와 비디오 모두 썸네일 API 사용
     return `/api/media/thumbnail/${media.id}`;
   };
-  
+
   // 원본 파일 URL 생성
   const getOriginalUrl = (media: MediaItem) => {
     // 항상 API를 통해 파일 가져오기 (권한 처리 및 경로 호환성)
@@ -398,9 +390,9 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
             <ArrowLeft className="w-4 h-4" />
             뒤로가기
           </button>
-          
+
           <h1 className="text-xl font-semibold text-white">갤러리</h1>
-          
+
           <div className="flex items-center gap-3 text-sm text-stone-400">
             {mediaCounts.images > 0 && (
               <span className="flex items-center gap-1">
@@ -414,21 +406,21 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                 <span>동영상</span>
               </span>
             )}
-            {mediaCounts.images === 0 && mediaCounts.videos === 0 && (
-              <span>미디어 없음</span>
-            )}
+            {mediaCounts.images === 0 && mediaCounts.videos === 0 && <span>미디어 없음</span>}
           </div>
         </div>
       </div>
 
       {/* 필터 바 */}
-      <GalleryFilter 
+      <GalleryFilter
         filters={filters}
-        onFilterChange={(newFilters) => setFilters({
-          ...newFilters,
-          mediaType: newFilters.mediaType || 'all',
-          cameraMake: newFilters.cameraMake || undefined
-        })}
+        onFilterChange={(newFilters) =>
+          setFilters({
+            ...newFilters,
+            mediaType: newFilters.mediaType || 'all',
+            cameraMake: newFilters.cameraMake || undefined,
+          })
+        }
         cameraOptions={cameraOptions}
       />
 
@@ -448,21 +440,23 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
             >
               {/* 날짜 헤더 */}
               <div className="sticky top-20 z-5 bg-stone-900/80 backdrop-blur-sm py-2">
-                <h2 className="text-lg font-semibold text-white">
-                  {group.displayDate}
-                </h2>
-                <p className="text-sm text-stone-400">
-                  {group.count}개 항목
-                </p>
+                <h2 className="text-lg font-semibold text-white">{group.displayDate}</h2>
+                <p className="text-sm text-stone-400">{group.count}개 항목</p>
               </div>
 
               {/* 미디어 그리드 - Masonry 레이아웃 */}
               <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 space-y-2">
                 {group.media.map((media, index) => {
                   // 랜덤한 aspect ratio로 돌처럼 보이게 하기
-                  const aspectRatios = ['aspect-square', 'aspect-[4/5]', 'aspect-[5/4]', 'aspect-[3/4]', 'aspect-[4/3]'];
+                  const aspectRatios = [
+                    'aspect-square',
+                    'aspect-[4/5]',
+                    'aspect-[5/4]',
+                    'aspect-[3/4]',
+                    'aspect-[4/3]',
+                  ];
                   const randomAspect = aspectRatios[index % aspectRatios.length];
-                  
+
                   return (
                     <motion.div
                       key={media.id}
@@ -474,42 +468,42 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                       className={`relative ${randomAspect} bg-stone-800 rounded-xl overflow-hidden cursor-pointer group break-inside-avoid mb-2`}
                       onClick={() => handleMediaClick(media)}
                     >
-                    {/* 썸네일 */}
-                    {/* 썸네일 이미지 - 비디오와 이미지 모두 동일하게 처리 */}
-                    <Image
-                      src={getThumbnailUrl(media)}
-                      alt={media.originalName}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        // 썸네일 로드 실패시 원본 시도
-                        if (!target.src.includes('/api/media/file/')) {
-                          target.src = `/api/media/file/${media.id}`;
-                        }
-                      }}
-                    />
-                    
-                    {/* 비디오 재생 버튼 오버레이 */}
-                    {media.mimeType.startsWith('video/') && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="bg-black/50 rounded-full p-3">
-                          <Play className="w-6 h-6 text-white fill-white" />
+                      {/* 썸네일 */}
+                      {/* 썸네일 이미지 - 비디오와 이미지 모두 동일하게 처리 */}
+                      <Image
+                        src={getThumbnailUrl(media)}
+                        alt={media.originalName}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          // 썸네일 로드 실패시 원본 시도
+                          if (!target.src.includes('/api/media/file/')) {
+                            target.src = `/api/media/file/${media.id}`;
+                          }
+                        }}
+                      />
+
+                      {/* 비디오 재생 버튼 오버레이 */}
+                      {media.mimeType.startsWith('video/') && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="bg-black/50 rounded-full p-3">
+                            <Play className="w-6 h-6 text-white fill-white" />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 오버레이 */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+
+                      {/* 업로더 정보 */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                        <div className="flex items-center gap-1 text-xs text-white/80">
+                          <User className="w-3 h-3" />
+                          <span className="truncate">{media.uploadedBy.username}</span>
                         </div>
                       </div>
-                    )}
-
-                    {/* 오버레이 */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-
-                    {/* 업로더 정보 */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                      <div className="flex items-center gap-1 text-xs text-white/80">
-                        <User className="w-3 h-3" />
-                        <span className="truncate">{media.uploadedBy.username}</span>
-                      </div>
-                    </div>
                     </motion.div>
                   );
                 })}
@@ -591,14 +585,14 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
                     <h3 className="font-semibold text-lg">{selectedMedia.originalName}</h3>
-                    
+
                     {/* 주요 정보 */}
                     <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-white/60" />
                         <span className="text-white/80">업로더: {selectedMedia.uploadedBy.username}</span>
                       </div>
-                      
+
                       {selectedMedia.metadata?.takenAt ? (
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-white/60" />
@@ -609,54 +603,52 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                       ) : (
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-white/60" />
-                          <span className="text-white/60 italic">
-                            촬영: 정보 없음
-                          </span>
+                          <span className="text-white/60 italic">촬영: 정보 없음</span>
                         </div>
                       )}
-                      
+
                       {(selectedMedia.createdAt || selectedMedia.uploadedAt) && (
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-white/60" />
                           <span className="text-white/80">
-                            업로드: {new Date(selectedMedia.createdAt || selectedMedia.uploadedAt).toLocaleString('ko-KR')}
+                            업로드:{' '}
+                            {new Date(selectedMedia.createdAt || selectedMedia.uploadedAt).toLocaleString('ko-KR')}
                           </span>
                         </div>
                       )}
-                      
+
                       {(selectedMedia.metadata.cameraMake || selectedMedia.metadata.cameraModel) && (
                         <div className="flex items-center gap-2">
                           <Camera className="w-4 h-4 text-white/60" />
                           <span className="text-white/80">
                             {[selectedMedia.metadata.cameraMake, selectedMedia.metadata.cameraModel]
-                              .filter(Boolean).join(' ')}
+                              .filter(Boolean)
+                              .join(' ')}
                           </span>
                         </div>
                       )}
-                      
+
                       {selectedMedia.metadata.location && (
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-white/60" />
                           <span className="text-white/80">
-                            위치: {selectedMedia.metadata.location.latitude?.toFixed(6)}, 
+                            위치: {selectedMedia.metadata.location.latitude?.toFixed(6)},
                             {selectedMedia.metadata.location.longitude?.toFixed(6)}
                           </span>
                         </div>
                       )}
-                      
+
                       {/* 기술적 정보 */}
                       <div className="col-span-2 pt-1 border-t border-white/10">
                         <div className="flex flex-wrap gap-3 text-xs text-white/60">
                           <span>크기: {formatFileSize(selectedMedia.size)}</span>
                           {selectedMedia.metadata.width && selectedMedia.metadata.height && (
-                            <span>해상도: {selectedMedia.metadata.width}×{selectedMedia.metadata.height}</span>
+                            <span>
+                              해상도: {selectedMedia.metadata.width}×{selectedMedia.metadata.height}
+                            </span>
                           )}
-                          {selectedMedia.metadata.iso && (
-                            <span>ISO: {selectedMedia.metadata.iso}</span>
-                          )}
-                          {selectedMedia.metadata.fNumber && (
-                            <span>조리개: f/{selectedMedia.metadata.fNumber}</span>
-                          )}
+                          {selectedMedia.metadata.iso && <span>ISO: {selectedMedia.metadata.iso}</span>}
+                          {selectedMedia.metadata.fNumber && <span>조리개: f/{selectedMedia.metadata.fNumber}</span>}
                           {selectedMedia.metadata.exposureTime && (
                             <span>셔터: {selectedMedia.metadata.exposureTime}s</span>
                           )}
@@ -667,23 +659,23 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
                       onClick={() => handleShareMedia(selectedMedia)}
                       className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
                       title="공유"
                     >
                       <Share2 className="w-4 h-4" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDownloadMedia(selectedMedia)}
                       className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
                       title="다운로드"
                     >
                       <Download className="w-4 h-4" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => showDeleteConfirm(selectedMedia.id)}
                       disabled={deletingMedia === selectedMedia.id}
                       className="p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors disabled:opacity-50"
@@ -711,13 +703,13 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
               className="absolute inset-0 bg-black/70"
               onClick={() => setShowDeleteModal(false)}
             />
-            
+
             {/* 모달 */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="relative bg-stone-800 rounded-2xl p-6 w-[90%] max-w-sm z-10"
               onClick={(e) => e.stopPropagation()}
             >
@@ -725,11 +717,10 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                 <div className="mx-auto w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
                   <Trash2 className="w-6 h-6 text-red-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  미디어 삭제
-                </h3>
+                <h3 className="text-lg font-semibold text-white mb-2">미디어 삭제</h3>
                 <p className="text-stone-300 text-sm mb-6">
-                  이 미디어를 삭제하시겠습니까?<br />
+                  이 미디어를 삭제하시겠습니까?
+                  <br />
                   삭제된 미디어는 복구할 수 없습니다.
                 </p>
                 <div className="flex gap-3">
@@ -753,27 +744,6 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
         )}
       </AnimatePresence>
 
-      {/* 토스트 알림 */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-[70]"
-          >
-            <div
-              className={`px-6 py-4 rounded-2xl shadow-2xl ${
-                toast.type === 'success'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-red-500 text-white'
-              } backdrop-blur-sm min-w-[250px] text-center`}
-            >
-              <p className="text-sm font-semibold">{toast.message}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

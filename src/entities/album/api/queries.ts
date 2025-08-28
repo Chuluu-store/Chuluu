@@ -1,14 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { QUERY_KEYS } from "../../../shared/config";
-import { apiClient, ApiResponse } from "../../../shared/api";
-import { Album, AlbumCreate, AlbumUpdate, SharedAlbum } from "../model";
+import { QUERY_KEYS } from '../../../shared/config';
+import { apiClient, ApiResponse } from '../../../shared/api';
+import { Album, AlbumCreate, AlbumUpdate, SharedAlbum } from '../model';
 
 export function useAlbumList() {
   return useQuery({
     queryKey: QUERY_KEYS.albums.list(),
     queryFn: async (): Promise<Album[]> => {
-      const response = await apiClient.get<ApiResponse<Album[]>>("/albums");
+      const response = await apiClient.get<ApiResponse<Album[]>>('/albums');
       return response.data || [];
     },
   });
@@ -20,7 +20,7 @@ export function useAlbum(id: string) {
     queryFn: async (): Promise<Album> => {
       const response = await apiClient.get<ApiResponse<Album>>(`/albums/${id}`);
       if (!response.data) {
-        throw new Error("Album not found");
+        throw new Error('Album not found');
       }
       return response.data;
     },
@@ -32,11 +32,9 @@ export function useSharedAlbum(token: string) {
   return useQuery({
     queryKey: QUERY_KEYS.shared.album(token),
     queryFn: async (): Promise<SharedAlbum> => {
-      const response = await apiClient.get<ApiResponse<SharedAlbum>>(
-        `/shared/${token}`
-      );
+      const response = await apiClient.get<ApiResponse<SharedAlbum>>(`/shared/${token}`);
       if (!response.data) {
-        throw new Error("Shared album not found");
+        throw new Error('Shared album not found');
       }
       return response.data;
     },
@@ -50,12 +48,9 @@ export function useCreateAlbum() {
 
   return useMutation({
     mutationFn: async (albumData: AlbumCreate): Promise<Album> => {
-      const response = await apiClient.post<ApiResponse<Album>>(
-        "/albums",
-        albumData
-      );
+      const response = await apiClient.post<ApiResponse<Album>>('/albums', albumData);
       if (!response.data) {
-        throw new Error("Failed to create album");
+        throw new Error('Failed to create album');
       }
       return response.data;
     },
@@ -69,19 +64,10 @@ export function useUpdateAlbum() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      updates,
-    }: {
-      id: string;
-      updates: AlbumUpdate;
-    }): Promise<Album> => {
-      const response = await apiClient.put<ApiResponse<Album>>(
-        `/albums/${id}`,
-        updates
-      );
+    mutationFn: async ({ id, updates }: { id: string; updates: AlbumUpdate }): Promise<Album> => {
+      const response = await apiClient.put<ApiResponse<Album>>(`/albums/${id}`, updates);
       if (!response.data) {
-        throw new Error("Failed to update album");
+        throw new Error('Failed to update album');
       }
       return response.data;
     },
@@ -112,11 +98,9 @@ export function useGenerateShareToken() {
 
   return useMutation({
     mutationFn: async (albumId: string): Promise<string> => {
-      const response = await apiClient.post<
-        ApiResponse<{ shareToken: string }>
-      >(`/albums/${albumId}/share`);
+      const response = await apiClient.post<ApiResponse<{ shareToken: string }>>(`/albums/${albumId}/share`);
       if (!response.data?.shareToken) {
-        throw new Error("Failed to generate share token");
+        throw new Error('Failed to generate share token');
       }
       return response.data.shareToken;
     },

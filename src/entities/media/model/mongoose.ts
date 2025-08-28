@@ -1,5 +1,5 @@
-import { Schema, model, models } from "mongoose";
-import { Media } from "./types";
+import { Schema, model, models } from 'mongoose';
+import { Media } from './types';
 
 const MediaSchema = new Schema<Media>({
   filename: { type: String, required: true },
@@ -7,7 +7,7 @@ const MediaSchema = new Schema<Media>({
   mimeType: { type: String, required: true },
   size: { type: Number, required: true },
   path: { type: String, required: true },
-  type: { type: String, enum: ["image", "video"], required: true },
+  type: { type: String, enum: ['image', 'video'], required: true },
   metadata: {
     width: { type: Number, required: true },
     height: { type: Number, required: true },
@@ -24,14 +24,14 @@ const MediaSchema = new Schema<Media>({
     medium: { type: String, required: true },
     large: { type: String, required: true },
   },
-  albumId: { type: Schema.Types.ObjectId, ref: "Album" },
+  albumId: { type: Schema.Types.ObjectId, ref: 'Album' },
   uploadedAt: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
 
 // Update the updatedAt field on save
-MediaSchema.pre("save", function () {
+MediaSchema.pre('save', function () {
   this.updatedAt = new Date();
 });
 
@@ -39,6 +39,6 @@ MediaSchema.pre("save", function () {
 MediaSchema.index({ albumId: 1 });
 MediaSchema.index({ type: 1 });
 MediaSchema.index({ createdAt: -1 });
-MediaSchema.index({ "metadata.dateTaken": -1 });
+MediaSchema.index({ 'metadata.dateTaken': -1 });
 
-export const MediaModel = models.Media || model<Media>("Media", MediaSchema);
+export const MediaModel = models.Media || model<Media>('Media', MediaSchema);

@@ -1,1 +1,1 @@
-export * from "./upload-zone";
+export * from './upload-zone';

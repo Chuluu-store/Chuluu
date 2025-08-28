@@ -8,9 +8,9 @@ export interface User {
 }
 
 export interface UserPreferences {
-  theme: "light" | "dark" | "system";
-  language: "ko" | "en";
-  gridSize: "small" | "medium" | "large";
+  theme: 'light' | 'dark' | 'system';
+  language: 'ko' | 'en';
+  gridSize: 'small' | 'medium' | 'large';
   autoUpload: boolean;
   showMetadata: boolean;
 }

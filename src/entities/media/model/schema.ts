@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import type { MediaItem } from "@/shared/types";
+import mongoose from 'mongoose';
+import type { MediaItem } from '@/shared/types';
 
 const MediaSchema = new mongoose.Schema<MediaItem>({
   filename: { type: String, required: true },
@@ -20,9 +20,9 @@ const MediaSchema = new mongoose.Schema<MediaItem>({
   },
   isVideo: { type: Boolean, default: false },
   uploadedAt: { type: Date, default: Date.now },
-  albumId: { type: mongoose.Schema.Types.ObjectId, ref: "Album" },
-  groupId: { type: mongoose.Schema.Types.ObjectId, ref: "Group" },
-  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  albumId: { type: mongoose.Schema.Types.ObjectId, ref: 'Album' },
+  groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
+  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 });
 
 MediaSchema.index({ uploadedAt: -1 });
@@ -31,5 +31,4 @@ MediaSchema.index({ isVideo: 1 });
 MediaSchema.index({ groupId: 1 });
 MediaSchema.index({ uploadedBy: 1 });
 
-export const MediaModel =
-  mongoose.models.Media || mongoose.model<MediaItem>("Media", MediaSchema);
+export const MediaModel = mongoose.models.Media || mongoose.model<MediaItem>('Media', MediaSchema);

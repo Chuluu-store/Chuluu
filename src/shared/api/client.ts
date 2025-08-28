@@ -1,5 +1,5 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import { env } from "../config";
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { env } from '../config';
 
 export class ApiClient {
   private client: AxiosInstance;
@@ -9,7 +9,7 @@ export class ApiClient {
       baseURL,
       timeout: 30000,
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
@@ -20,7 +20,7 @@ export class ApiClient {
     this.client.interceptors.request.use(
       (config) => {
         // Add auth token if available
-        const token = localStorage.getItem("auth-token");
+        const token = localStorage.getItem('auth-token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -33,8 +33,8 @@ export class ApiClient {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          localStorage.removeItem("auth-token");
-          window.location.href = "/login";
+          localStorage.removeItem('auth-token');
+          window.location.href = '/login';
         }
         return Promise.reject(error);
       }
@@ -46,24 +46,12 @@ export class ApiClient {
     return response.data;
   }
 
-  async post<T>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig
-  ): Promise<T> {
-    const response: AxiosResponse<T> = await this.client.post(
-      url,
-      data,
-      config
-    );
+  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.client.post(url, data, config);
     return response.data;
   }
 
-  async put<T>(
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig
-  ): Promise<T> {
+  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     const response: AxiosResponse<T> = await this.client.put(url, data, config);
     return response.data;
   }
@@ -73,20 +61,14 @@ export class ApiClient {
     return response.data;
   }
 
-  async upload<T>(
-    url: string,
-    formData: FormData,
-    onProgress?: (progress: number) => void
-  ): Promise<T> {
+  async upload<T>(url: string, formData: FormData, onProgress?: (progress: number) => void): Promise<T> {
     const response: AxiosResponse<T> = await this.client.post(url, formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
       },
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
-          const progress = Math.round(
-            (progressEvent.loaded / progressEvent.total) * 100
-          );
+          const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
           onProgress(progress);
         }
       },

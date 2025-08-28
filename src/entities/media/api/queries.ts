@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { Media, MediaFilter } from "../model";
-import { QUERY_KEYS } from "../../../shared/config";
-import { apiClient, ApiResponse } from "../../../shared/api";
+import { Media, MediaFilter } from '../model';
+import { QUERY_KEYS } from '../../../shared/config';
+import { apiClient, ApiResponse } from '../../../shared/api';
 
 export function useMediaList(filter?: MediaFilter) {
   return useQuery({
@@ -10,15 +10,14 @@ export function useMediaList(filter?: MediaFilter) {
     queryFn: async (): Promise<Media[]> => {
       const params = new URLSearchParams();
 
-      if (filter?.type) params.append("type", filter.type);
-      if (filter?.albumId) params.append("albumId", filter.albumId);
-      if (filter?.search) params.append("search", filter.search);
-      if (filter?.dateFrom)
-        params.append("dateFrom", filter.dateFrom.toISOString());
-      if (filter?.dateTo) params.append("dateTo", filter.dateTo.toISOString());
+      if (filter?.type) params.append('type', filter.type);
+      if (filter?.albumId) params.append('albumId', filter.albumId);
+      if (filter?.search) params.append('search', filter.search);
+      if (filter?.dateFrom) params.append('dateFrom', filter.dateFrom.toISOString());
+      if (filter?.dateTo) params.append('dateTo', filter.dateTo.toISOString());
 
       const queryString = params.toString();
-      const url = queryString ? `/media?${queryString}` : "/media";
+      const url = queryString ? `/media?${queryString}` : '/media';
 
       const response = await apiClient.get<ApiResponse<Media[]>>(url);
       return response.data || [];
@@ -33,7 +32,7 @@ export function useMedia(id: string) {
     queryFn: async (): Promise<Media> => {
       const response = await apiClient.get<ApiResponse<Media>>(`/media/${id}`);
       if (!response.data) {
-        throw new Error("Media not found");
+        throw new Error('Media not found');
       }
       return response.data;
     },
@@ -59,7 +58,7 @@ export function useDeleteMultipleMedia() {
 
   return useMutation({
     mutationFn: async (ids: string[]): Promise<void> => {
-      await apiClient.post("/media/delete-multiple", { ids });
+      await apiClient.post('/media/delete-multiple', { ids });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.media.all });

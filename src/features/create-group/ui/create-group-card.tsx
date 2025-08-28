@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Plus } from 'lucide-react';
 
 interface CreateGroupCardProps {
   onClick: () => void;
@@ -23,9 +23,7 @@ export function CreateGroupCard({ onClick }: CreateGroupCardProps) {
         <h3 className="text-lg sm:text-xl font-medium text-white mb-3 sm:mb-4 group-hover:text-stone-200 transition-colors">
           새 그룹 만들기
         </h3>
-        <p className="text-sm sm:text-base text-stone-400 leading-relaxed">
-          친구들과 사진을 공유하세요
-        </p>
+        <p className="text-sm sm:text-base text-stone-400 leading-relaxed">친구들과 사진을 공유하세요</p>
       </div>
     </motion.div>
   );

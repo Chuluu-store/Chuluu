@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
+import React from 'react';
+import { motion } from 'framer-motion';
 
 interface ActionCardProps {
   icon: React.ComponentType<{ className?: string }>;
@@ -10,12 +10,7 @@ interface ActionCardProps {
   onClick?: () => void;
 }
 
-export function ActionCard({
-  icon: Icon,
-  title,
-  description,
-  onClick,
-}: ActionCardProps) {
+export function ActionCard({ icon: Icon, title, description, onClick }: ActionCardProps) {
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.02 }}

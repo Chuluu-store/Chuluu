@@ -1,4 +1,4 @@
-import { SharePage } from "../../../widgets/share-page";
+import { SharePage } from '../../../widgets/share-page';
 
 interface PageProps {
   params: Promise<{ token: string }>;

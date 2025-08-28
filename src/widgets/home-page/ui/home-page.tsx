@@ -1,47 +1,47 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Header } from "../../header";
-import { Navigation } from "../../navigation";
-import { GroupsPage } from "../../groups";
-import { GroupModal } from "@/features/group/ui/group-modal";
-import { HomeContent } from "./home-content";
+import React, { useState, useEffect } from 'react';
+import { Header } from '../../header';
+import { Navigation } from '../../navigation';
+import { GroupsPage } from '../../groups';
+import { GroupModal } from '@/features/group/ui/group-modal';
+import { HomeContent } from './home-content';
 
 export function HomePage() {
-  const [currentPage, setCurrentPage] = useState<"home" | "groups">("home");
+  const [currentPage, setCurrentPage] = useState<'home' | 'groups'>('home');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [groupModal, setGroupModal] = useState<{
     isOpen: boolean;
-    type: "create" | "join";
+    type: 'create' | 'join';
   }>({
     isOpen: false,
-    type: "create",
+    type: 'create',
   });
 
   useEffect(() => {
-    console.log("HomePage currentPage changed to:", currentPage);
+    console.log('HomePage currentPage changed to:', currentPage);
   }, [currentPage]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
 
     if (token && user) {
       setIsLoggedIn(true);
     }
   }, []);
 
-  const handleNavigate = (page: "home" | "groups") => {
-    console.log("Navigation clicked, changing from", currentPage, "to", page);
+  const handleNavigate = (page: 'home' | 'groups') => {
+    console.log('Navigation clicked, changing from', currentPage, 'to', page);
     setCurrentPage(page);
 
     setTimeout(() => {
-      console.log("After state update, currentPage should be:", page);
+      console.log('After state update, currentPage should be:', page);
     }, 0);
 
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -51,7 +51,7 @@ export function HomePage() {
     window.location.reload();
   };
 
-  const openGroupModal = (type: "create" | "join") => {
+  const openGroupModal = (type: 'create' | 'join') => {
     if (!isLoggedIn) {
       setShowLogin(true);
     } else {
@@ -65,7 +65,7 @@ export function HomePage() {
         <Header />
 
         <main className="flex-1">
-          {currentPage === "home" ? (
+          {currentPage === 'home' ? (
             <HomeContent
               isLoggedIn={isLoggedIn}
               showLogin={showLogin}

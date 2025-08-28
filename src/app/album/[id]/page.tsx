@@ -1,4 +1,4 @@
-import { AlbumPage } from "../../../widgets/album-page";
+import { AlbumPage } from '../../../widgets/album-page';
 
 interface PageProps {
   params: Promise<{ id: string }>;

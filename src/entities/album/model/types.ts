@@ -27,7 +27,7 @@ export interface SharedAlbum extends Album {
   media: Array<{
     id: string;
     filename: string;
-    type: "image" | "video";
+    type: 'image' | 'video';
     thumbnails: {
       small: string;
       medium: string;

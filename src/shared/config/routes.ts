@@ -1,5 +1,5 @@
 export const ROUTES = {
-  home: "/",
+  home: '/',
   album: (id: string) => `/album/${id}`,
   media: (id: string) => `/media/${id}`,
 } as const;

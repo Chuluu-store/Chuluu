@@ -25,15 +25,16 @@ export function FileDropZone({ onDrop, onDragOver, onClick }: FileDropZoneProps)
       >
         <Upload className="w-10 h-10 text-stone-400 group-hover:text-stone-300 transition-colors" />
       </motion.div>
-      
+
       <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-stone-200 transition-colors">
         파일을 드래그하거나 클릭하여 선택
       </h3>
-      
+
       <p className="text-stone-400 mb-4 text-lg">
-        최대 <span className="text-white font-semibold">5000개</span> 파일, 개별 파일당 <span className="text-white font-semibold">500MB</span>까지 지원
+        최대 <span className="text-white font-semibold">5000개</span> 파일, 개별 파일당{' '}
+        <span className="text-white font-semibold">500MB</span>까지 지원
       </p>
-      
+
       <p className="text-sm text-stone-500">
         지원 형식: <span className="text-stone-400">JPG, PNG, GIF, WebP, HEIC, MP4, MOV, AVI, WebM</span>
       </p>

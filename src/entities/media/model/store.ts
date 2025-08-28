@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
-import { Media, MediaFilter, MediaSort, MediaUpload } from "./types";
+import { Media, MediaFilter, MediaSort, MediaUpload } from './types';
 
 interface MediaState {
   // Data
@@ -51,7 +51,7 @@ export const useMediaStore = create<MediaState>()(
       uploads: [],
       selectedMedia: [],
       filter: {},
-      sort: "newest",
+      sort: 'newest',
       isLoading: false,
       error: null,
 
@@ -71,9 +71,7 @@ export const useMediaStore = create<MediaState>()(
 
       updateMedia: (id, updates) =>
         set((state) => ({
-          media: state.media.map((m) =>
-            m.id === id ? { ...m, ...updates } : m
-          ),
+          media: state.media.map((m) => (m.id === id ? { ...m, ...updates } : m)),
         })),
 
       // Selection actions
@@ -82,9 +80,7 @@ export const useMediaStore = create<MediaState>()(
           const isSelected = state.selectedMedia.some((m) => m.id === media.id);
           if (isSelected) {
             return {
-              selectedMedia: state.selectedMedia.filter(
-                (m) => m.id !== media.id
-              ),
+              selectedMedia: state.selectedMedia.filter((m) => m.id !== media.id),
             };
           }
           return {
@@ -112,9 +108,7 @@ export const useMediaStore = create<MediaState>()(
 
       updateUpload: (index, updates) =>
         set((state) => ({
-          uploads: state.uploads.map((upload, i) =>
-            i === index ? { ...upload, ...updates } : upload
-          ),
+          uploads: state.uploads.map((upload, i) => (i === index ? { ...upload, ...updates } : upload)),
         })),
 
       removeUpload: (index) =>
@@ -138,6 +132,6 @@ export const useMediaStore = create<MediaState>()(
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
     }),
-    { name: "media-store" }
+    { name: 'media-store' }
   )
 );

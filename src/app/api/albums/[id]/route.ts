@@ -1,13 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
-import { ApiResponse } from "../../../../shared/api";
-import { AlbumModel } from "../../../../entities/album";
-import { dbConnect, transformAlbumDocument } from "../../../../shared/lib";
-import {
-  Album,
-  AlbumDocument,
-  AlbumUpdate,
-} from "../../../../shared/types/album";
+import { ApiResponse } from '../../../../shared/api';
+import { AlbumModel } from '../../../../entities/album';
+import { dbConnect, transformAlbumDocument } from '../../../../shared/lib';
+import { Album, AlbumDocument, AlbumUpdate } from '../../../../shared/types/album';
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -18,15 +14,13 @@ export async function GET(request: NextRequest, { params }: Params) {
     await dbConnect();
     const { id } = await params;
 
-    const album = (await AlbumModel.findById(
-      id
-    ).lean()) as AlbumDocument | null;
+    const album = (await AlbumModel.findById(id).lean()) as AlbumDocument | null;
 
     if (!album) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          error: "Album not found",
+          error: 'Album not found',
         },
         { status: 404 }
       );
@@ -37,11 +31,11 @@ export async function GET(request: NextRequest, { params }: Params) {
       data: transformAlbumDocument(album),
     });
   } catch (error) {
-    console.error("Error fetching album:", error);
+    console.error('Error fetching album:', error);
     return NextResponse.json<ApiResponse>(
       {
         success: false,
-        error: "Failed to fetch album",
+        error: 'Failed to fetch album',
       },
       { status: 500 }
     );
@@ -68,7 +62,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          error: "Album not found",
+          error: 'Album not found',
         },
         { status: 404 }
       );
@@ -79,11 +73,11 @@ export async function PUT(request: NextRequest, { params }: Params) {
       data: transformAlbumDocument(album),
     });
   } catch (error) {
-    console.error("Error updating album:", error);
+    console.error('Error updating album:', error);
     return NextResponse.json<ApiResponse>(
       {
         success: false,
-        error: "Failed to update album",
+        error: 'Failed to update album',
       },
       { status: 500 }
     );
@@ -101,7 +95,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          error: "Album not found",
+          error: 'Album not found',
         },
         { status: 404 }
       );
@@ -111,11 +105,11 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       success: true,
     });
   } catch (error) {
-    console.error("Error deleting album:", error);
+    console.error('Error deleting album:', error);
     return NextResponse.json<ApiResponse>(
       {
         success: false,
-        error: "Failed to delete album",
+        error: 'Failed to delete album',
       },
       { status: 500 }
     );

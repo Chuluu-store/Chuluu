@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useInView } from "react-intersection-observer";
-import { AnimatePresence, motion } from "framer-motion";
-import { Media, useMediaStore } from "../../../entities/media";
-import { useUserStore } from "../../../entities/user";
-import { MediaCard } from "./media-card";
-import { LoadingSpinner } from "../../../shared/ui";
+import React from 'react';
+import { useInView } from 'react-intersection-observer';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Media, useMediaStore } from '../../../entities/media';
+import { useUserStore } from '../../../entities/user';
+import { MediaCard } from './media-card';
+import { LoadingSpinner } from '../../../shared/ui';
 
 interface MediaGridProps {
   media: Media[];
@@ -18,9 +18,9 @@ interface MediaGridProps {
 }
 
 const gridSizeClasses = {
-  small: "grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8",
-  medium: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6",
-  large: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+  small: 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8',
+  medium: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6',
+  large: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
 };
 
 export function MediaGrid({
@@ -49,7 +49,7 @@ export function MediaGrid({
   const gridClass = gridSizeClasses[preferences.gridSize];
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
+    if (e.key === 'Escape') {
       clearSelection();
     }
   };
@@ -87,13 +87,8 @@ export function MediaGrid({
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 p-3 bg-blue-50 rounded-lg flex items-center justify-between"
         >
-          <span className="text-blue-800 font-medium">
-            {selectedMedia.length}개 항목이 선택됨
-          </span>
-          <button
-            onClick={clearSelection}
-            className="text-blue-600 hover:text-blue-800 text-sm"
-          >
+          <span className="text-blue-800 font-medium">{selectedMedia.length}개 항목이 선택됨</span>
+          <button onClick={clearSelection} className="text-blue-600 hover:text-blue-800 text-sm">
             선택 해제
           </button>
         </motion.div>
@@ -121,10 +116,7 @@ export function MediaGrid({
           {loading ? (
             <LoadingSpinner />
           ) : (
-            <button
-              onClick={onLoadMore}
-              className="px-6 py-2 text-blue-600 hover:text-blue-800 font-medium"
-            >
+            <button onClick={onLoadMore} className="px-6 py-2 text-blue-600 hover:text-blue-800 font-medium">
               더 보기
             </button>
           )}

@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { existsSync, mkdirSync } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import path from 'path';
 import os from 'os';
 
@@ -71,7 +71,7 @@ export async function convertHeicToJpeg(inputPath: string): Promise<Buffer | nul
     // 변환 성공 시 버퍼 반환
     if (converted && existsSync(outputPath)) {
       const buffer = await readFile(outputPath);
-      
+
       // 임시 파일 삭제
       try {
         const fs = await import('fs/promises');
@@ -79,12 +79,12 @@ export async function convertHeicToJpeg(inputPath: string): Promise<Buffer | nul
       } catch (e) {
         // 삭제 실패 무시
       }
-      
-      console.log('✅ HEIC conversion successful');
+
+      console.log('HEIC conversion successful');
       return buffer;
     }
 
-    console.error('❌ All HEIC conversion methods failed');
+    console.error('All HEIC conversion methods failed');
     return null;
   } catch (error) {
     console.error('HEIC conversion error:', error);
@@ -135,7 +135,7 @@ export async function convertHeicToThumbnail(inputPath: string, size: number = 3
 
     if (converted && existsSync(outputPath)) {
       const buffer = await readFile(outputPath);
-      
+
       // 임시 파일 삭제
       try {
         const fs = await import('fs/promises');
@@ -143,7 +143,7 @@ export async function convertHeicToThumbnail(inputPath: string, size: number = 3
       } catch (e) {
         // 삭제 실패 무시
       }
-      
+
       return buffer;
     }
 

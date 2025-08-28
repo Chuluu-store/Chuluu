@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import React, { memo } from "react";
-import { motion } from "framer-motion";
-import { Images, FolderOpen } from "lucide-react";
+import React, { memo } from 'react';
+import { motion } from 'framer-motion';
+import { Images, FolderOpen } from 'lucide-react';
 
 // 네비게이션 아이템 타입
 interface NavItem {
-  id: "home" | "groups";
+  id: 'home' | 'groups';
   label: string;
   icon: React.ComponentType<{ className?: string }>;
 }
@@ -14,35 +14,27 @@ interface NavItem {
 // 네비게이션 아이템들 - 심플하게 정리
 const navItems: NavItem[] = [
   {
-    id: "home",
-    label: "홈",
+    id: 'home',
+    label: '홈',
     icon: Images,
   },
   {
-    id: "groups",
-    label: "내 그룹",
+    id: 'groups',
+    label: '내 그룹',
     icon: FolderOpen,
   },
 ];
 
 interface NavigationProps {
-  currentPage: "home" | "groups";
-  onNavigate: (page: "home" | "groups") => void;
+  currentPage: 'home' | 'groups';
+  onNavigate: (page: 'home' | 'groups') => void;
 }
 
-export const Navigation = memo(function Navigation({
-  currentPage,
-  onNavigate,
-}: NavigationProps) {
-  console.log("Navigation rendered with currentPage:", currentPage);
+export const Navigation = memo(function Navigation({ currentPage, onNavigate }: NavigationProps) {
+  console.log('Navigation rendered with currentPage:', currentPage);
 
-  const handleNavClick = (page: "home" | "groups") => {
-    console.log(
-      "Nav button clicked:",
-      page,
-      "- Current page was:",
-      currentPage
-    );
+  const handleNavClick = (page: 'home' | 'groups') => {
+    console.log('Nav button clicked:', page, '- Current page was:', currentPage);
     onNavigate(page);
   };
 
@@ -55,14 +47,14 @@ export const Navigation = memo(function Navigation({
             <motion.div
               className="absolute inset-y-0 left-0 bg-stone-700 rounded-2xl will-change-transform"
               style={{
-                width: "calc(50% - 3px)",
-                transform: "translateZ(0)",
+                width: 'calc(50% - 3px)',
+                transform: 'translateZ(0)',
               }}
               animate={{
-                x: currentPage === "groups" ? "calc(100% + 6px)" : "0%",
+                x: currentPage === 'groups' ? 'calc(100% + 6px)' : '0%',
               }}
               transition={{
-                type: "spring",
+                type: 'spring',
                 stiffness: 500,
                 damping: 35,
                 mass: 0.8,
@@ -77,16 +69,12 @@ export const Navigation = memo(function Navigation({
               >
                 <item.icon
                   className={`w-5 h-5 mb-1 transition-all duration-200 ${
-                    currentPage === item.id
-                      ? "text-white opacity-100"
-                      : "text-stone-400 opacity-70"
+                    currentPage === item.id ? 'text-white opacity-100' : 'text-stone-400 opacity-70'
                   }`}
                 />
                 <span
                   className={`text-xs transition-all duration-200 ${
-                    currentPage === item.id
-                      ? "text-white font-semibold"
-                      : "text-stone-400 font-medium"
+                    currentPage === item.id ? 'text-white font-semibold' : 'text-stone-400 font-medium'
                   }`}
                 >
                   {item.label}

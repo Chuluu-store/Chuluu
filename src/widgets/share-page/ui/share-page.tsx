@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Header } from "../../header";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Header } from '../../header';
 
 interface SharePageProps {
   token: string;
@@ -15,17 +15,11 @@ export function SharePage({ token }: SharePageProps) {
 
       <main className="pb-32 safe-bottom">
         <div className="px-6 py-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
             <div className="glass-card p-6 rounded-3xl">
               <h1 className="text-2xl font-bold text-white">Shared Album</h1>
               <p className="text-gray-400 text-sm mt-2">Token: {token}</p>
-              <p className="text-gray-400 text-sm mt-1">
-                공유된 앨범 페이지 (구현 예정)
-              </p>
+              <p className="text-gray-400 text-sm mt-1">공유된 앨범 페이지 (구현 예정)</p>
             </div>
           </motion.div>
         </div>

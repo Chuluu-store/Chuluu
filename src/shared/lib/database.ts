@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-import { env } from "../config";
+import { env } from '../config';
 
 if (!env.MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable");
+  throw new Error('Please define the MONGODB_URI environment variable');
 }
 
 let cached = global as any;
@@ -22,11 +22,9 @@ export async function dbConnect() {
       bufferCommands: false,
     };
 
-    cached.mongoose.promise = mongoose
-      .connect(env.MONGODB_URI, opts)
-      .then((mongoose) => {
-        return mongoose;
-      });
+    cached.mongoose.promise = mongoose.connect(env.MONGODB_URI, opts).then((mongoose) => {
+      return mongoose;
+    });
   }
 
   try {

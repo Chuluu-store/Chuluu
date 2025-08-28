@@ -1,1 +1,1 @@
-export * from "./media-grid-widget";
+export * from './media-grid-widget';

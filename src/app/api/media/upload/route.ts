@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
-import mongoose from "mongoose";
+import { NextRequest, NextResponse } from 'next/server';
+import { writeFile, mkdir } from 'fs/promises';
+import { existsSync } from 'fs';
+import path from 'path';
+import mongoose from 'mongoose';
 
 // MongoDB 연결
 const connectDB = async () => {
@@ -26,28 +26,25 @@ const MediaSchema = new mongoose.Schema(
       height: Number,
       dateTaken: Date,
     },
-    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }
 );
 
-const Media = mongoose.models.Media || mongoose.model("Media", MediaSchema);
+const Media = mongoose.models.Media || mongoose.model('Media', MediaSchema);
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
     const formData = await request.formData();
-    const files = formData.getAll("files") as File[];
+    const files = formData.getAll('files') as File[];
 
     if (!files || files.length === 0) {
-      return NextResponse.json(
-        { error: "파일을 선택해주세요" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '파일을 선택해주세요' }, { status: 400 });
     }
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 
     // 업로드 디렉토리 생성
     if (!existsSync(uploadDir)) {
@@ -75,7 +72,7 @@ export async function POST(request: NextRequest) {
         path: `/uploads/${filename}`,
         size: file.size,
         mimetype: file.type,
-        isVideo: file.type.startsWith("video/"),
+        isVideo: file.type.startsWith('video/'),
         metadata: {
           dateTaken: new Date(),
         },
@@ -85,14 +82,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: "파일 업로드 성공",
+      message: '파일 업로드 성공',
       files: uploadedFiles,
     });
   } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: "파일 업로드 중 오류가 발생했습니다" },
-      { status: 500 }
-    );
+    console.error('Upload error:', error);
+    return NextResponse.json({ error: '파일 업로드 중 오류가 발생했습니다' }, { status: 500 });
   }
 }
