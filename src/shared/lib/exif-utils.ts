@@ -80,10 +80,10 @@ export async function parseExifFromFile(filePath: string): Promise<any> {
         make: result.tags?.Make,
         model: result.tags?.Model,
         dateTimeOriginal: result.tags?.DateTimeOriginal
-          ? new Date(result.tags.DateTimeOriginal * 1000).toISOString()
+          ? new Date(Number(result.tags.DateTimeOriginal) * 1000).toISOString()
           : null,
-        createDate: result.tags?.CreateDate ? new Date(result.tags.CreateDate * 1000).toISOString() : null,
-        modifyDate: result.tags?.ModifyDate ? new Date(result.tags.ModifyDate * 1000).toISOString() : null,
+        createDate: result.tags?.CreateDate ? new Date(Number(result.tags.CreateDate) * 1000).toISOString() : null,
+        modifyDate: result.tags?.ModifyDate ? new Date(Number(result.tags.ModifyDate) * 1000).toISOString() : null,
         orientation: result.tags?.Orientation,
         iso: result.tags?.ISO,
         fNumber: result.tags?.FNumber,
@@ -160,9 +160,9 @@ export function parseExifFromBuffer(buffer: Buffer): any {
         make: result.tags?.Make,
         model: result.tags?.Model,
         dateTimeOriginal: result.tags?.DateTimeOriginal
-          ? new Date(result.tags.DateTimeOriginal * 1000).toISOString()
+          ? new Date(Number(result.tags.DateTimeOriginal) * 1000).toISOString()
           : null,
-        createDate: result.tags?.CreateDate ? new Date(result.tags.CreateDate * 1000).toISOString() : null,
+        createDate: result.tags?.CreateDate ? new Date(Number(result.tags.CreateDate) * 1000).toISOString() : null,
         orientation: result.tags?.Orientation,
         iso: result.tags?.ISO,
         fNumber: result.tags?.FNumber,

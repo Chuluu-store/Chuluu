@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, Users, Image as ImageIcon, Settings, Share2, Calendar } from 'lucide-react';
 
-import { Header } from '../../../widgets/header';
-import { Navigation } from '../../../widgets/navigation';
-import { BulkUpload } from '../../../features/upload/ui/bulk-upload';
-import { PhotoGallery } from '../../../features/gallery/ui/photo-gallery';
-import { toast } from '../../../shared/lib/toast';
+import { Header } from "../../../widgets/header";
+import { Navigation } from "../../../widgets/navigation";
+import { BulkUpload } from "../../../features/upload/ui/bulk-upload";
+import { PhotoGallery } from "../../../features/gallery/ui/photo-gallery";
+import { toast } from "../../../shared/lib/toast";
 
 interface GroupData {
   id: string;
@@ -31,8 +31,6 @@ export default function GroupDetailPage() {
   const [showUpload, setShowUpload] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'home' | 'groups'>('groups');
   const [recentMedia, setRecentMedia] = useState<any[]>([]);
 
   useEffect(() => {
@@ -42,7 +40,6 @@ export default function GroupDetailPage() {
       return;
     }
 
-    setIsLoggedIn(true);
     // TODO: 실제 그룹 데이터 로드
     loadGroupData();
   }, [groupId, router]);
@@ -122,7 +119,8 @@ export default function GroupDetailPage() {
   const copyInviteCode = () => {
     if (group?.inviteCode) {
       navigator.clipboard.writeText(group.inviteCode);
-      toast.success('초대 코드가 복사되었습니다!');
+      // TODO: 토스트 메시지 표시
+      toast.success("초대 코드가 복사되었습니다!");
     }
   };
 
@@ -143,7 +141,7 @@ export default function GroupDetailPage() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-white">로딩 중...</div>
           </div>
-          <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
+          <Navigation onNavigate={handleNavigate} currentPage="groups" />
         </div>
       </div>
     );
@@ -165,7 +163,7 @@ export default function GroupDetailPage() {
               </button>
             </div>
           </div>
-          <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
+          <Navigation onNavigate={handleNavigate} currentPage="groups" />
         </div>
       </div>
     );
@@ -179,7 +177,7 @@ export default function GroupDetailPage() {
           <div className="flex-1 py-8 pb-24 overflow-y-auto">
             <BulkUpload groupId={groupId} onUploadComplete={handleUploadComplete} onClose={handleBackToGroup} />
           </div>
-          <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
+          <Navigation onNavigate={handleNavigate} currentPage="groups" />
         </div>
       </div>
     );
@@ -193,7 +191,7 @@ export default function GroupDetailPage() {
           <div className="flex-1 py-8 pb-24 overflow-y-auto">
             <PhotoGallery groupId={groupId} onBack={handleBackToGroup} />
           </div>
-          <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
+          <Navigation onNavigate={handleNavigate} currentPage="groups" />
         </div>
       </div>
     );
@@ -409,7 +407,7 @@ export default function GroupDetailPage() {
             )}
           </motion.div>
         </div>
-        <Navigation onNavigate={handleNavigate} currentPage={currentPage} />
+        <Navigation onNavigate={handleNavigate} currentPage="groups" />
       </div>
 
     </div>
