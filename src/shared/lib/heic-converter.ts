@@ -1,38 +1,46 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
-import path from 'path';
-import os from 'os';
-
-const execAsync = promisify(exec);
+import sharp from 'sharp';
+const heicConvert = require('heic-convert');
 
 /**
- * macOS의 sips 명령어를 사용하여 HEIC를 JPEG로 변환
+ * heic-convert 라이브러리를 사용하여 HEIC를 JPEG로 변환
  */
-async function convertWithSips(inputPath: string, outputPath: string): Promise<boolean> {
+async function convertWithHeicConvert(inputPath: string): Promise<Buffer | null> {
   try {
-    // macOS의 sips 명령어 사용
-    const command = `sips -s format jpeg "${inputPath}" --out "${outputPath}" --setProperty formatOptions 90`;
-    await execAsync(command);
-    return existsSync(outputPath);
+    console.log('[convertWithHeicConvert] HEIC 변환 시작 :', inputPath);
+    
+    const inputBuffer = await readFile(inputPath);
+    const outputBuffer = await heicConvert({
+      buffer: inputBuffer,
+      format: 'JPEG',
+      quality: 0.9
+    });
+    
+    console.log('[convertWithHeicConvert] HEIC 변환 완료 :', outputBuffer.length, 'bytes');
+    return outputBuffer;
   } catch (error) {
-    console.error('sips conversion failed:', error);
-    return false;
+    console.error('[convertWithHeicConvert] heic-convert 변환 실패 :', error);
+    return null;
   }
 }
 
 /**
- * ImageMagick을 사용하여 HEIC를 JPEG로 변환
+ * Sharp를 사용하여 HEIC를 JPEG로 변환 (fallback)
  */
-async function convertWithImageMagick(inputPath: string, outputPath: string): Promise<boolean> {
+async function convertWithSharp(inputPath: string): Promise<Buffer | null> {
   try {
-    const command = `convert "${inputPath}" -quality 90 "${outputPath}"`;
-    await execAsync(command);
-    return existsSync(outputPath);
+    console.log('[convertWithSharp] HEIC 변환 시도 :', inputPath);
+    
+    const buffer = await sharp(inputPath)
+      .jpeg({ quality: 90 })
+      .toBuffer();
+    
+    console.log('[convertWithSharp] HEIC 변환 완료 :', buffer.length, 'bytes');
+    return buffer;
   } catch (error) {
-    console.error('ImageMagick conversion failed:', error);
-    return false;
+    console.error('[convertWithSharp] Sharp 변환 실패 :', error);
+    return null;
   }
 }
 
@@ -41,53 +49,33 @@ async function convertWithImageMagick(inputPath: string, outputPath: string): Pr
  */
 export async function convertHeicToJpeg(inputPath: string): Promise<Buffer | null> {
   if (!existsSync(inputPath)) {
-    console.error('Input file not found:', inputPath);
+    console.error('[convertHeicToJpeg] 입력 파일을 찾을 수 없습니다 :', inputPath);
     return null;
   }
 
-  // 임시 출력 경로 생성
-  const tempDir = path.join(os.tmpdir(), 'heic-conversion');
-  if (!existsSync(tempDir)) {
-    mkdirSync(tempDir, { recursive: true });
-  }
-
-  const outputPath = path.join(tempDir, `${Date.now()}_converted.jpg`);
-
   try {
-    let converted = false;
-
-    // macOS인 경우 sips 시도
-    if (process.platform === 'darwin') {
-      console.log('Attempting HEIC conversion with sips...');
-      converted = await convertWithSips(inputPath, outputPath);
-    }
-
-    // sips 실패 시 ImageMagick 시도
-    if (!converted) {
-      console.log('Attempting HEIC conversion with ImageMagick...');
-      converted = await convertWithImageMagick(inputPath, outputPath);
-    }
-
-    // 변환 성공 시 버퍼 반환
-    if (converted && existsSync(outputPath)) {
-      const buffer = await readFile(outputPath);
-
-      // 임시 파일 삭제
-      try {
-        const fs = await import('fs/promises');
-        await fs.unlink(outputPath);
-      } catch (e) {
-        // 삭제 실패 무시
-      }
-
-      console.log('HEIC conversion successful');
+    // 1. heic-convert 라이브러리 먼저 시도
+    console.log('[convertHeicToJpeg] heic-convert로 HEIC 변환 시도 :', inputPath);
+    let buffer = await convertWithHeicConvert(inputPath);
+    
+    if (buffer) {
+      console.log('[convertHeicToJpeg] heic-convert 변환 성공 :', buffer.length, 'bytes');
       return buffer;
     }
 
-    console.error('All HEIC conversion methods failed');
+    // 2. Sharp로 fallback 시도
+    console.log('[convertHeicToJpeg] Sharp로 fallback 시도 :', inputPath);
+    buffer = await convertWithSharp(inputPath);
+    
+    if (buffer) {
+      console.log('[convertHeicToJpeg] Sharp 변환 성공 :', buffer.length, 'bytes');
+      return buffer;
+    }
+
+    console.error('[convertHeicToJpeg] 모든 HEIC 변환 방법 실패');
     return null;
   } catch (error) {
-    console.error('HEIC conversion error:', error);
+    console.error('[convertHeicToJpeg] HEIC 변환 오류 :', error);
     return null;
   }
 }
@@ -97,59 +85,44 @@ export async function convertHeicToJpeg(inputPath: string): Promise<Buffer | nul
  */
 export async function convertHeicToThumbnail(inputPath: string, size: number = 300): Promise<Buffer | null> {
   if (!existsSync(inputPath)) {
-    console.error('Input file not found:', inputPath);
+    console.error('[convertHeicToThumbnail] 입력 파일을 찾을 수 없습니다 :', inputPath);
     return null;
   }
-
-  const tempDir = path.join(os.tmpdir(), 'heic-thumbnails');
-  if (!existsSync(tempDir)) {
-    mkdirSync(tempDir, { recursive: true });
-  }
-
-  const outputPath = path.join(tempDir, `${Date.now()}_thumb.jpg`);
 
   try {
-    let converted = false;
-
-    if (process.platform === 'darwin') {
-      // macOS sips로 썸네일 생성
-      const command = `sips -s format jpeg "${inputPath}" --resampleHeightWidth ${size} ${size} --out "${outputPath}" --setProperty formatOptions 85`;
-      try {
-        await execAsync(command);
-        converted = existsSync(outputPath);
-      } catch (error) {
-        console.error('sips thumbnail failed:', error);
-      }
+    // 1. heic-convert로 먼저 JPEG 변환
+    console.log('[convertHeicToThumbnail] heic-convert로 HEIC → JPEG 변환 :', inputPath);
+    const jpegBuffer = await convertWithHeicConvert(inputPath);
+    
+    if (jpegBuffer) {
+      // 2. Sharp로 썸네일 리사이즈
+      console.log('[convertHeicToThumbnail] Sharp로 썸네일 리사이즈 :', `${size}x${size}`);
+      const thumbnailBuffer = await sharp(jpegBuffer)
+        .resize(size, size, { 
+          fit: 'cover',
+          position: 'center'
+        })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+      
+      console.log('[convertHeicToThumbnail] 썸네일 생성 완료 :', thumbnailBuffer.length, 'bytes');
+      return thumbnailBuffer;
     }
 
-    if (!converted) {
-      // ImageMagick으로 썸네일 생성
-      const command = `convert "${inputPath}" -thumbnail ${size}x${size} -quality 85 "${outputPath}"`;
-      try {
-        await execAsync(command);
-        converted = existsSync(outputPath);
-      } catch (error) {
-        console.error('ImageMagick thumbnail failed:', error);
-      }
-    }
-
-    if (converted && existsSync(outputPath)) {
-      const buffer = await readFile(outputPath);
-
-      // 임시 파일 삭제
-      try {
-        const fs = await import('fs/promises');
-        await fs.unlink(outputPath);
-      } catch (e) {
-        // 삭제 실패 무시
-      }
-
-      return buffer;
-    }
-
-    return null;
+    // 3. heic-convert 실패시 Sharp 직접 시도 (fallback)
+    console.log('[convertHeicToThumbnail] Sharp로 직접 썸네일 시도 :', inputPath);
+    const buffer = await sharp(inputPath)
+      .resize(size, size, { 
+        fit: 'cover',
+        position: 'center'
+      })
+      .jpeg({ quality: 85 })
+      .toBuffer();
+    
+    console.log('[convertHeicToThumbnail] Sharp 직접 썸네일 완료 :', buffer.length, 'bytes');
+    return buffer;
   } catch (error) {
-    console.error('HEIC thumbnail error:', error);
+    console.error('[convertHeicToThumbnail] HEIC 썸네일 오류 :', error);
     return null;
   }
 }

@@ -38,6 +38,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         if (!group || !group.members.includes(decoded.userId)) {
           return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 });
         }
+      } else {
+        // 토큰이 유효하지 않은 경우
+        console.log('[GET /api/media/file] 유효하지 않은 토큰으로 미디어 접근 시도 :', mediaId);
+        // 임시로 공개 접근 허용하지만 로그로 추적
       }
     }
 
@@ -57,7 +61,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
     // 파일 존재 확인
     if (!existsSync(actualFilePath)) {
-      console.error('File not found:', actualFilePath);
+      console.error('[GET /api/media/file] 파일을 찾을 수 없음 :', actualFilePath);
       return NextResponse.json({ error: '파일을 찾을 수 없습니다' }, { status: 404 });
     }
 
@@ -98,13 +102,13 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       actualFilePath.toLowerCase().endsWith('.heif');
 
     if (isHeic) {
-      console.log(`Converting HEIC to JPEG: ${actualFilePath}`);
+      console.log('[GET /api/media/file] HEIC 파일을 JPEG로 변환 시작 :', actualFilePath);
 
       // 먼저 시스템 명령어로 변환 시도
       const convertedBuffer = await convertHeicToJpeg(actualFilePath);
 
       if (convertedBuffer) {
-        console.log(`✅ HEIC converted successfully: ${convertedBuffer.length} bytes`);
+        console.log('[GET /api/media/file] HEIC 변환 성공 :', `${convertedBuffer.length} bytes`);
 
         return new NextResponse(new Uint8Array(convertedBuffer), {
           headers: {
@@ -120,7 +124,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         });
       } else {
         // 변환 실패 시 Sharp로 플레이스홀더 생성
-        console.log('HEIC conversion failed, creating placeholder');
+        console.log('[GET /api/media/file] HEIC 변환 실패, 플레이스홀더 생성 :', actualFilePath);
 
         const sharp = await import('sharp');
         const placeholderBuffer = await sharp
@@ -172,7 +176,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       },
     });
   } catch (error) {
-    console.error('Media file serve error:', error);
+    console.error('[GET /api/media/file] 파일 서빙 중 오류 발생 :', error);
     return NextResponse.json({ error: '파일 서빙 중 오류가 발생했습니다' }, { status: 500 });
   }
 }

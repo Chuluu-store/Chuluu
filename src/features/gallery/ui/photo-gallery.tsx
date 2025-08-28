@@ -17,8 +17,89 @@ import {
   Trash2,
 } from 'lucide-react';
 import Image from 'next/image';
+
 import { GalleryFilter } from './gallery-filter';
 import { toast } from '../../../shared/lib/toast';
+
+// HEIC 이미지 뷰어 컴포넌트
+function HeicImageViewer({
+  media,
+  getThumbnailUrl,
+  getOriginalUrl,
+}: {
+  media: MediaItem;
+  getThumbnailUrl: (media: MediaItem) => string;
+  getOriginalUrl: (media: MediaItem) => string;
+}) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [showThumbnail, setShowThumbnail] = useState(true);
+  const [originalError, setOriginalError] = useState(false);
+
+  // HEIC 파일인지 확인
+  const isHeic =
+    media.mimeType === 'image/heic' ||
+    media.mimeType === 'image/heif' ||
+    media.originalName.toLowerCase().endsWith('.heic') ||
+    media.originalName.toLowerCase().endsWith('.heif');
+
+  useEffect(() => {
+    setImageLoaded(false);
+    setShowThumbnail(true);
+    setOriginalError(false);
+  }, [media.id]);
+
+  const handleOriginalLoad = () => {
+    console.log('[HeicImageViewer] 원본 이미지 로드 완료 :', media.originalName);
+    setImageLoaded(true);
+    setShowThumbnail(false);
+  };
+
+  const handleOriginalError = () => {
+    console.log('[HeicImageViewer] 원본 이미지 로드 실패, 썸네일 사용 :', media.originalName);
+    setOriginalError(true);
+    setShowThumbnail(true);
+  };
+
+  return (
+    <div className="relative">
+      {/* 썸네일 이미지 (HEIC는 먼저 보여줌, 일반 이미지는 로딩 실패시만) */}
+      {(showThumbnail || originalError) && (
+        <Image
+          src={getThumbnailUrl(media)}
+          alt={`${media.originalName} 미리보기`}
+          width={media.metadata.width || 800}
+          height={media.metadata.height || 600}
+          className="max-w-full max-h-[70vh] object-contain"
+          priority
+        />
+      )}
+
+      {/* 원본 이미지 */}
+      <Image
+        src={getOriginalUrl(media)}
+        alt={media.originalName}
+        width={media.metadata.width || 800}
+        height={media.metadata.height || 600}
+        className={`max-w-full max-h-[70vh] object-contain transition-opacity duration-300 ${
+          imageLoaded && !originalError ? 'opacity-100' : 'opacity-0 absolute inset-0'
+        }`}
+        onLoad={handleOriginalLoad}
+        onError={handleOriginalError}
+        priority={!isHeic}
+      />
+
+      {/* 로딩 인디케이터 (HEIC 파일용) */}
+      {isHeic && showThumbnail && !originalError && (
+        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            원본 로딩 중...
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface MediaItem {
   id: string;
@@ -556,12 +637,10 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
               {/* 미디어 컨텐츠 */}
               <div className="relative max-w-full max-h-full">
                 {selectedMedia.mimeType.startsWith('image/') ? (
-                  <Image
-                    src={getOriginalUrl(selectedMedia)}
-                    alt={selectedMedia.originalName}
-                    width={selectedMedia.metadata.width || 800}
-                    height={selectedMedia.metadata.height || 600}
-                    className="max-w-full max-h-[70vh] object-contain"
+                  <HeicImageViewer
+                    media={selectedMedia}
+                    getThumbnailUrl={getThumbnailUrl}
+                    getOriginalUrl={getOriginalUrl}
                   />
                 ) : (
                   <video

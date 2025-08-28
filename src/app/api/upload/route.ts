@@ -1,56 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir, access } from "fs/promises";
-import { constants } from "fs";
-import path from "path";
-import sharp from "sharp";
-import exifr from "exifr";
+import { NextRequest, NextResponse } from 'next/server';
+import { writeFile, mkdir, access } from 'fs/promises';
+import { constants } from 'fs';
+import path from 'path';
+import sharp from 'sharp';
 
-import { verifyToken } from "../../../shared/lib/auth";
-import { connectDB } from "../../../shared/lib/database";
-import { MediaModel } from "../../../entities/media/model/schema";
-import { Group } from "../../../entities/group/model/group.model";
+import { parseExifFromFile } from '../../../shared/lib/exif-utils';
+import { verifyToken } from '../../../shared/lib/auth';
+import { connectDB } from '../../../shared/lib/database';
+import { MediaModel } from '../../../entities/media/model/schema';
+import { Group } from '../../../entities/group/model/group.model';
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
     // 토큰 검증
-    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-    const groupId = request.headers.get("X-Group-Id");
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+    const groupId = request.headers.get('X-Group-Id');
 
     if (!token) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
+      return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
     if (!decoded) {
-      return NextResponse.json(
-        { error: "유효하지 않은 토큰입니다" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: '유효하지 않은 토큰입니다' }, { status: 401 });
     }
 
     const formData = await request.formData();
-    const files = formData.getAll("files") as File[];
+    const files = formData.getAll('files') as File[];
 
     if (files.length === 0) {
-      return NextResponse.json({ error: "No files uploaded" }, { status: 400 });
+      return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
     }
 
     // 그룹별 폴더 생성
-    const groupFolder = groupId || "general";
-    const uploadDir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      groupFolder
-    );
-    const thumbnailDir = path.join(
-      process.cwd(),
-      "public",
-      "thumbnails",
-      groupFolder
-    );
+    const groupFolder = groupId || 'general';
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', groupFolder);
+    const thumbnailDir = path.join(process.cwd(), 'public', 'thumbnails', groupFolder);
 
     await mkdir(uploadDir, { recursive: true });
     await mkdir(thumbnailDir, { recursive: true });
@@ -84,40 +71,43 @@ export async function POST(request: NextRequest) {
 
       await writeFile(filepath, buffer);
 
-      let thumbnailPath = "";
+      let thumbnailPath = '';
       let metadata: any = {};
-      const isVideo = file.type.startsWith("video/");
+      const isVideo = file.type.startsWith('video/');
 
       if (!isVideo) {
         try {
-          const exifData = await exifr.parse(buffer);
-          metadata = {
-            width: exifData?.ImageWidth,
-            height: exifData?.ImageHeight,
-            dateTaken: exifData?.DateTimeOriginal || exifData?.CreateDate,
-            camera: exifData?.Make
-              ? `${exifData.Make} ${exifData.Model}`
-              : undefined,
-            location:
-              exifData?.latitude && exifData?.longitude
+          const exifData = await parseExifFromFile(filepath);
+
+          if (exifData) {
+            metadata = {
+              width: exifData.width,
+              height: exifData.height,
+              dateTaken: exifData.dateTimeOriginal,
+              camera:
+                exifData.cameraMake && exifData.cameraModel
+                  ? `${exifData.cameraMake} ${exifData.cameraModel}`
+                  : undefined,
+              location: exifData.gps
                 ? {
-                    latitude: exifData.latitude,
-                    longitude: exifData.longitude,
+                    latitude: exifData.gps.latitude,
+                    longitude: exifData.gps.longitude,
                   }
                 : undefined,
-          };
+            };
+          }
 
           const thumbnailFilename = `thumb-${filename}`;
           thumbnailPath = path.join(thumbnailDir, thumbnailFilename);
 
           await sharp(buffer)
-            .resize(400, 400, { fit: "cover", position: "center" })
+            .resize(400, 400, { fit: 'cover', position: 'center' })
             .jpeg({ quality: 80 })
             .toFile(thumbnailPath);
 
           thumbnailPath = `/thumbnails/${groupFolder}/${thumbnailFilename}`;
         } catch (error) {
-          console.error("Error processing image:", error);
+          console.error('Error processing image:', error);
         }
       }
 
@@ -151,10 +141,7 @@ export async function POST(request: NextRequest) {
       groupId: groupId || null,
     });
   } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: "Failed to upload files" },
-      { status: 500 }
-    );
+    console.error('Upload error:', error);
+    return NextResponse.json({ error: 'Failed to upload files' }, { status: 500 });
   }
 }
