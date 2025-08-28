@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 2024 트렌디한 모던 디자인 시스템 */
+/* 트렌디한 모던 디자인 시스템 */
 :root {
   /* Safe Area */
   --safe-area-inset-top: env(safe-area-inset-top);

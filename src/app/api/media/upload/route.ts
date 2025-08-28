@@ -1,37 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import mongoose from 'mongoose';
-
-// MongoDB 연결
-const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
-
-  return mongoose.connect(process.env.MONGODB_URI!);
-};
-
-// Media 모델
-const MediaSchema = new mongoose.Schema(
-  {
-    filename: { type: String, required: true },
-    originalName: { type: String, required: true },
-    path: { type: String, required: true },
-    size: { type: Number, required: true },
-    mimetype: { type: String, required: true },
-    thumbnail: { type: String },
-    isVideo: { type: Boolean, default: false },
-    metadata: {
-      width: Number,
-      height: Number,
-      dateTaken: Date,
-    },
-    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  },
-  { timestamps: true }
-);
-
-const Media = mongoose.models.Media || mongoose.model('Media', MediaSchema);
+import { connectDB, createSuccessResponse, createErrorResponse, ERROR_MESSAGES, HTTP_STATUS } from '../../../../shared/lib';
+import { Media } from '../../../../entities/media/model/media.model';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +13,7 @@ export async function POST(request: NextRequest) {
     const files = formData.getAll('files') as File[];
 
     if (!files || files.length === 0) {
-      return NextResponse.json({ error: '파일을 선택해주세요' }, { status: 400 });
+      return createErrorResponse('파일을 선택해주세요', HTTP_STATUS.BAD_REQUEST);
     }
 
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
@@ -81,12 +53,17 @@ export async function POST(request: NextRequest) {
       uploadedFiles.push(mediaDoc);
     }
 
-    return NextResponse.json({
-      message: '파일 업로드 성공',
-      files: uploadedFiles,
-    });
+    return createSuccessResponse(
+      { files: uploadedFiles },
+      '파일 업로드 성공',
+      HTTP_STATUS.CREATED
+    );
   } catch (error) {
-    console.error('Upload error:', error);
-    return NextResponse.json({ error: '파일 업로드 중 오류가 발생했습니다' }, { status: 500 });
+    console.error('[POST /api/media/upload] 파일 업로드 오류 :', error);
+    return createErrorResponse(
+      ERROR_MESSAGES.INTERNAL_ERROR,
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      '파일 업로드 중 오류가 발생했습니다'
+    );
   }
 }

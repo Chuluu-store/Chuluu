@@ -69,7 +69,7 @@ export function Toast({ message, type = 'success', duration = 3000, onClose, pos
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -50, scale: 0.9 }}
       className={`
-        fixed z-[9999] ${getPositionClasses()}
+        fixed z-[1000] ${getPositionClasses()}
         flex items-center gap-3 px-4 py-3 rounded-lg
         ${getColors()} border backdrop-blur-sm
         shadow-lg max-w-sm w-full mx-4 sm:mx-0
@@ -109,7 +109,7 @@ export function ToastContainer({
   };
 
   return (
-    <div className={`fixed z-[9999] ${getContainerClasses()} pointer-events-none`}>
+    <div className={`fixed z-[1000] ${getContainerClasses()} pointer-events-none`}>
       <div className="pointer-events-auto">
         <AnimatePresence>{children}</AnimatePresence>
       </div>

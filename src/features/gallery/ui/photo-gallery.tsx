@@ -11,9 +11,6 @@ import {
   Camera,
   MapPin,
   Play,
-  Pause,
-  Volume2,
-  VolumeX,
   X,
   ChevronLeft,
   ChevronRight,
@@ -154,7 +151,6 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   useEffect(() => {
     loadMedia();
   }, [loadMedia]);
-
 
   // 미디어 클릭 핸들러
   const handleMediaClick = (media: MediaItem) => {
@@ -520,7 +516,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
+            className="fixed inset-0 bg-black/90 z-[2000] flex items-center justify-center"
             onClick={closeModal}
           >
             {/* 모달 컨텐츠 */}
@@ -694,7 +690,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       {/* 삭제 확인 모달 */}
       <AnimatePresence>
         {showDeleteModal && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div className="fixed inset-0 z-[2100] flex items-center justify-center">
             {/* 백드롭 */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -743,7 +739,6 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
           </div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }

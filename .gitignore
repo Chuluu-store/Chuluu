@@ -53,3 +53,5 @@ public/uploads/
 nginx.conf
 *.nginx.conf
 deploy_script.sh
+
+.vscode

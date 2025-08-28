@@ -39,7 +39,7 @@ export const Navigation = memo(function Navigation({ currentPage, onNavigate }: 
   };
 
   return (
-    <div className="sticky bottom-0 z-50 w-full pb-5 pt-2">
+    <div className="sticky bottom-0 z-10 w-full pb-5 pt-2">
       <div className="max-w-xs mx-auto px-4">
         <div className="bg-stone-800/90 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-3 shadow-2xl">
           <div className="relative grid grid-cols-2 gap-1.5">

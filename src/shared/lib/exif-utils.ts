@@ -1,5 +1,3 @@
-import ExifParser from 'exif-parser';
-import * as piexif from 'piexifjs';
 import { readFile } from 'fs/promises';
 import ExifReaderLib from 'exifreader';
 
@@ -8,12 +6,12 @@ export async function parseExifFromFile(filePath: string): Promise<any> {
   try {
     // fs로 원본 파일 읽기 (EXIF 정보 보존)
     const fileBuffer = await readFile(filePath);
-    console.log(`📁 Reading EXIF from file: ${filePath} (${fileBuffer.length} bytes)`);
+    console.log('[parseExifFromFile] EXIF 파일 읽기 시작 :', filePath, `(${fileBuffer.length} bytes)`);
 
     // ExifReader 사용 (가장 정확한 EXIF 파싱)
     try {
       const tags = await ExifReaderLib.load(fileBuffer);
-      console.log('📸 ExifReader tags found:', Object.keys(tags).length, 'tags');
+      console.log('[parseExifFromFile] ExifReader 태그 발견 :', Object.keys(tags).length, '개');
 
       // GPS 정보 추출
       let gpsData = null;
@@ -29,7 +27,7 @@ export async function parseExifFromFile(filePath: string): Promise<any> {
           latitudeRef: tags['GPSLatitudeRef']?.description,
           longitudeRef: tags['GPSLongitudeRef']?.description,
         };
-        console.log('📍 GPS data found:', gpsData);
+        console.log('[parseExifFromFile] GPS 데이터 발견 :', gpsData);
       }
 
       return {
@@ -70,39 +68,11 @@ export async function parseExifFromFile(filePath: string): Promise<any> {
         }, {}),
       };
     } catch (exifReaderError) {
-      console.log('ExifReader failed, trying ExifParser:', exifReaderError);
-
-      // ExifParser 폴백
-      const parser = ExifParser.create(fileBuffer);
-      const result = parser.parse();
-
-      return {
-        make: result.tags?.Make,
-        model: result.tags?.Model,
-        dateTimeOriginal: result.tags?.DateTimeOriginal
-          ? new Date(Number(result.tags.DateTimeOriginal) * 1000).toISOString()
-          : null,
-        createDate: result.tags?.CreateDate ? new Date(Number(result.tags.CreateDate) * 1000).toISOString() : null,
-        modifyDate: result.tags?.ModifyDate ? new Date(Number(result.tags.ModifyDate) * 1000).toISOString() : null,
-        orientation: result.tags?.Orientation,
-        iso: result.tags?.ISO,
-        fNumber: result.tags?.FNumber,
-        exposureTime: result.tags?.ExposureTime,
-        focalLength: result.tags?.FocalLength,
-        imageWidth: result.imageSize?.width,
-        imageHeight: result.imageSize?.height,
-        gps:
-          result.tags?.GPSLatitude && result.tags?.GPSLongitude
-            ? {
-                latitude: result.tags.GPSLatitude,
-                longitude: result.tags.GPSLongitude,
-              }
-            : null,
-        allTags: result.tags,
-      };
+      console.error('[parseExifFromFile] ExifReader 실패 :', exifReaderError);
+      return null;
     }
   } catch (error) {
-    console.error('Failed to parse EXIF from file:', error);
+    console.error('[parseExifFromFile] EXIF 파싱 실패 :', error);
     return null;
   }
 }
@@ -151,37 +121,8 @@ export function parseExifFromBuffer(buffer: Buffer): any {
       orientation: tags['Orientation']?.value,
     };
   } catch (error) {
-    // ExifParser 폴백
-    try {
-      const parser = ExifParser.create(buffer);
-      const result = parser.parse();
-
-      return {
-        make: result.tags?.Make,
-        model: result.tags?.Model,
-        dateTimeOriginal: result.tags?.DateTimeOriginal
-          ? new Date(Number(result.tags.DateTimeOriginal) * 1000).toISOString()
-          : null,
-        createDate: result.tags?.CreateDate ? new Date(Number(result.tags.CreateDate) * 1000).toISOString() : null,
-        orientation: result.tags?.Orientation,
-        iso: result.tags?.ISO,
-        fNumber: result.tags?.FNumber,
-        exposureTime: result.tags?.ExposureTime,
-        focalLength: result.tags?.FocalLength,
-        imageWidth: result.imageSize?.width,
-        imageHeight: result.imageSize?.height,
-        gps:
-          result.tags?.GPSLatitude && result.tags?.GPSLongitude
-            ? {
-                latitude: result.tags.GPSLatitude,
-                longitude: result.tags.GPSLongitude,
-              }
-            : null,
-      };
-    } catch (parserError) {
-      console.log('Both parsers failed:', parserError);
-      return null;
-    }
+    console.error('[parseExifFromBuffer] EXIF 파싱 실패 :', error);
+    return null;
   }
 }
 
@@ -203,7 +144,7 @@ export function parseHeicExifBuffer(exifBuffer: Buffer): any {
       return parseExifFromBuffer(exifBuffer);
     }
   } catch (error) {
-    console.log('HEIC EXIF parsing failed:', error);
+    console.log('[parseHeicExifBuffer] HEIC EXIF 파싱 실패 :', error);
     return null;
   }
 }
@@ -239,7 +180,7 @@ export function parseExifDate(dateStr: any): Date | null {
       }
     }
   } catch (e) {
-    console.log('Date parsing failed:', dateStr);
+    console.log('[parseExifDate] 날짜 파싱 실패 :', dateStr);
   }
 
   return null;

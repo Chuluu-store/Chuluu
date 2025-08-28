@@ -50,18 +50,22 @@ export function HomeContent({
                   <br className="hidden sm:block" />
                   마음대로 사진을 공유하고, 추억을 함께 만들어가세요.
                 </p>
-                <div className="flex flex-wrap items-center justify-center gap-2 text-lg">
-                  <span className="px-3 py-1 bg-stone-700/50 border border-stone-600/50 rounded-full text-stone-100 font-medium">
-                    원본 품질
-                  </span>
-                  <span className="text-stone-300">•</span>
-                  <span className="px-3 py-1 bg-stone-700/50 border border-stone-600/50 rounded-full text-stone-100 font-medium">
-                    무제한 업로드
-                  </span>
-                  <span className="text-stone-300">•</span>
-                  <span className="px-3 py-1 bg-stone-700/50 border border-stone-600/50 rounded-full text-stone-100 font-medium">
-                    쉬운 공유
-                  </span>
+                <div className="grid grid-cols-3 gap-1.5 max-w-xs mx-auto">
+                  <div className="text-center">
+                    <span className="block px-1.5 py-1.5 bg-stone-700/50 border border-stone-600/50 rounded-lg text-stone-100 font-medium text-xs leading-tight">
+                      원본 품질
+                    </span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block px-1.5 py-1.5 bg-stone-700/50 border border-stone-600/50 rounded-lg text-stone-100 font-medium text-xs leading-tight">
+                      무제한 업로드
+                    </span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block px-1.5 py-1.5 bg-stone-700/50 border border-stone-600/50 rounded-lg text-stone-100 font-medium text-xs leading-tight">
+                      쉬운 공유
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
