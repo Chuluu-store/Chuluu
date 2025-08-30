@@ -208,7 +208,7 @@ export function normalizeMetadata(metadata: any): any {
       metadata?.height ||
       exifData?.PixelYDimension,
 
-    // 카메라 정보
+    // 카메라 정보 - MOV 파일도 카메라 정보 표시되도록
     cameraMake: metadata?.make || metadata?.Make || metadata?.cameraMake || exifData?.Make,
     cameraModel: metadata?.model || metadata?.Model || metadata?.cameraModel || exifData?.Model,
 
@@ -231,25 +231,32 @@ export function normalizeMetadata(metadata: any): any {
       metadata?.FNumber ||
       metadata?.ApertureValue ||
       exifData?.FNumber ||
-      parseFloat(exifData?.FNumber?.replace('f/', '')),
+      parseFloat(exifData?.FNumber?.replace?.('f/', '')),
     exposureTime:
       metadata?.exposureTime || metadata?.ExposureTime || metadata?.ShutterSpeedValue || exifData?.ExposureTime,
     focalLength:
       metadata?.focalLength ||
       metadata?.FocalLength ||
       exifData?.FocalLength ||
-      parseFloat(exifData?.FocalLength?.replace(' mm', '')),
+      parseFloat(exifData?.FocalLength?.replace?.(' mm', '')),
     focalLengthIn35mm:
       metadata?.focalLengthIn35mm ||
       metadata?.FocalLengthIn35mmFilm ||
       exifData?.FocalLengthIn35mmFilm ||
-      parseFloat(exifData?.FocalLengthIn35mmFilm?.replace(' mm', '')),
+      parseFloat(exifData?.FocalLengthIn35mmFilm?.replace?.(' mm', '')),
     orientation: metadata?.orientation || metadata?.Orientation || exifData?.Orientation,
 
-    // GPS
+    // GPS - gps 객체도 location으로 매핑
     location:
       metadata?.gps ||
       metadata?.location ||
+      (metadata?.gps?.latitude && metadata?.gps?.longitude
+        ? {
+            latitude: metadata.gps.latitude,
+            longitude: metadata.gps.longitude,
+            altitude: metadata.gps.altitude,
+          }
+        : null) ||
       (exifData?.GPSLatitude && exifData?.GPSLongitude
         ? {
             latitude: typeof exifData.GPSLatitude === 'number' ? exifData.GPSLatitude : metadata?.GPSLatitude,
@@ -261,6 +268,11 @@ export function normalizeMetadata(metadata: any): any {
     // 기타
     software: metadata?.software || metadata?.Software || exifData?.Software,
     lensModel: metadata?.lensModel || metadata?.LensModel || exifData?.LensModel,
+    
+    // 비디오 관련 (MOV 파일용)
+    duration: metadata?.duration || metadata?.Duration || exifData?.Duration,
+    bitrate: metadata?.bitrate || metadata?.Bitrate || exifData?.Bitrate,
+    codec: metadata?.codec || metadata?.Codec || exifData?.Codec,
 
     // 원본 데이터 (선택적)
     exif: metadata?.allTags || exifData,
