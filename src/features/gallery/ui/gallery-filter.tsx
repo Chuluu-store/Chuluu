@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Upload, Camera, Filter, SlidersHorizontal, Image, Video, ArrowUpDown } from 'lucide-react';
+import { Calendar, Upload, Camera, Filter, Image, Video, ArrowUpDown } from 'lucide-react';
 
 interface FilterOptions {
   sortBy: 'takenAt' | 'uploadedAt';
@@ -57,9 +57,9 @@ export function GalleryFilter({ filters, onFilterChange, cameraOptions = [] }: G
           {/* 미디어 타입 */}
           <div className="flex-shrink-0 flex items-center gap-1">
             <button
-              onClick={() => onFilterChange({ ...filters, mediaType: undefined })}
+              onClick={() => onFilterChange({ ...filters, mediaType: 'all' })}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all whitespace-nowrap ${
-                !filters.mediaType
+                filters.mediaType === 'all'
                   ? 'bg-stone-700 border-stone-600 text-white'
                   : 'bg-stone-800/80 border-stone-700/50 text-stone-400 hover:border-stone-600'
               }`}
@@ -115,21 +115,6 @@ export function GalleryFilter({ filters, onFilterChange, cameraOptions = [] }: G
             </div>
           )}
 
-          {/* 필터 요약 */}
-          {(filters.mediaType || filters.cameraMake) && (
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-stone-700/30 rounded-lg">
-              <SlidersHorizontal className="w-3 h-3 text-stone-500" />
-              <span className="text-xs text-stone-400">
-                {[
-                  filters.mediaType === 'image' && '사진',
-                  filters.mediaType === 'video' && '동영상',
-                  filters.cameraMake,
-                ]
-                  .filter(Boolean)
-                  .join(' • ')}
-              </span>
-            </div>
-          )}
         </div>
       </div>
     </div>

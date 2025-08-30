@@ -30,6 +30,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     const sortBy = url.searchParams.get('sortBy') || 'takenAt'; // takenAt, uploadedAt
     const order = url.searchParams.get('order') || 'desc'; // desc, asc
     const mediaType = url.searchParams.get('type'); // image, video
+    const cameraMake = url.searchParams.get('cameraMake'); // 카메라 제조사 필터
+    const cameraModel = url.searchParams.get('cameraModel'); // 카메라 모델 필터
 
     // 그룹 존재 및 권한 확인
     const group = await Group.findById(groupId);
@@ -52,6 +54,26 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       filter.mimeType = { $regex: '^image/' };
     } else if (mediaType === 'video') {
       filter.mimeType = { $regex: '^video/' };
+    }
+
+    // 카메라 필터 (제조사 + 모델 조합으로 검색)
+    if (cameraMake) {
+      // "Apple iPhone 14" 형태로 온 경우 분리해서 검색
+      const parts = cameraMake.split(' ');
+      if (parts.length >= 2) {
+        const make = parts[0]; // "Apple"
+        const model = parts.slice(1).join(' '); // "iPhone 14"
+        filter.$and = [
+          { 'metadata.cameraMake': make },
+          { 'metadata.cameraModel': model }
+        ];
+      } else {
+        // 단일 값인 경우 (예: "Apple")
+        filter['metadata.cameraMake'] = cameraMake;
+      }
+    }
+    if (cameraModel) {
+      filter['metadata.cameraModel'] = cameraModel;
     }
 
     // 정렬 조건 설정
@@ -78,6 +100,38 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       Media.find(filter).populate('uploadedBy', 'username email').sort(sortCondition).skip(skip).limit(limit).lean(),
       Media.countDocuments(filter),
     ]);
+
+    // 그룹 내 모든 카메라 기종 목록 추출 (제조사 + 모델 조합)
+    const mediaForCameras = await Media.find({
+      groupId,
+      status: 'completed',
+      $or: [
+        { 'metadata.cameraMake': { $exists: true, $ne: null, $ne: '' } },
+        { 'metadata.cameraModel': { $exists: true, $ne: null, $ne: '' } }
+      ]
+    }, 'metadata.cameraMake metadata.cameraModel').lean();
+
+    // 카메라 기종 옵션 생성 (Make + Model 조합)
+    const cameraSet = new Set<string>();
+    mediaForCameras.forEach((item: any) => {
+      const make = item.metadata?.cameraMake;
+      const model = item.metadata?.cameraModel;
+      
+      if (make && model) {
+        // "Apple iPhone 14" 형태
+        cameraSet.add(`${make} ${model}`);
+      } else if (make) {
+        // "Apple" 형태 (모델 정보가 없는 경우)
+        cameraSet.add(make);
+      } else if (model) {
+        // "iPhone 14" 형태 (제조사 정보가 없는 경우)
+        cameraSet.add(model);
+      }
+    });
+    
+    const cameraOptions = Array.from(cameraSet).sort();
+    
+    console.log('📱 추출된 카메라 옵션:', cameraOptions);
 
     // 날짜별로 그룹화 (아이폰 갤러리 스타일)
     const groupedMedia: { [key: string]: any[] } = {};
@@ -191,6 +245,16 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         name: group.name,
         description: group.description,
         memberCount: group.members.length,
+      },
+      filterOptions: {
+        cameraOptions: cameraOptions, // 이미 정렬되고 필터링됨
+        currentFilters: {
+          sortBy,
+          order,
+          mediaType,
+          cameraMake,
+          cameraModel,
+        },
       },
     });
   } catch (error) {
