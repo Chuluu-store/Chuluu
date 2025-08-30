@@ -186,6 +186,9 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       if (filters.mediaType && filters.mediaType !== 'all') {
         params.append('type', filters.mediaType);
       }
+      if (filters.cameraMake) {
+        params.append('cameraMake', filters.cameraMake);
+      }
 
       const response = await fetch(`/api/groups/${groupId}/media?${params}`, {
         headers: {
@@ -206,17 +209,19 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       }, []);
       setAllMedia(flatMedia);
 
-      // 카메라 옵션 추출
-      const cameras = new Set<string>();
-      flatMedia.forEach((item: MediaItem) => {
-        if (item.metadata?.cameraMake) {
-          const cameraName = item.metadata.cameraModel
-            ? `${item.metadata.cameraMake} ${item.metadata.cameraModel}`
-            : item.metadata.cameraMake;
-          cameras.add(cameraName);
-        }
-      });
-      setCameraOptions(Array.from(cameras).sort());
+      // API에서 받은 카메라 옵션 사용
+      if (result.filterOptions?.cameraOptions) {
+        setCameraOptions(result.filterOptions.cameraOptions);
+      } else {
+        // 폴백: 로컬에서 카메라 옵션 추출
+        const cameras = new Set<string>();
+        flatMedia.forEach((item: MediaItem) => {
+          if (item.metadata?.cameraMake) {
+            cameras.add(item.metadata.cameraMake);
+          }
+        });
+        setCameraOptions(Array.from(cameras).sort());
+      }
 
       // 미디어 타입별 카운트 계산
       const imageCount = flatMedia.filter((item: MediaItem) => item.mimeType.startsWith('image/')).length;
@@ -227,7 +232,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
     } finally {
       setLoading(false);
     }
-  }, [groupId, filters.sortBy, filters.order, filters.mediaType]);
+  }, [groupId, filters.sortBy, filters.order, filters.mediaType, filters.cameraMake]);
 
   useEffect(() => {
     loadMedia();
@@ -491,13 +496,14 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
       {/* 필터 바 */}
       <GalleryFilter
         filters={filters}
-        onFilterChange={(newFilters) =>
+        onFilterChange={(newFilters) => {
           setFilters({
-            ...newFilters,
-            mediaType: newFilters.mediaType || 'all',
-            cameraMake: newFilters.cameraMake || undefined,
-          })
-        }
+            sortBy: newFilters.sortBy || 'takenAt',
+            order: newFilters.order || 'desc',
+            mediaType: newFilters.mediaType === undefined ? 'all' : newFilters.mediaType,
+            cameraMake: newFilters.cameraMake,
+          });
+        }}
         cameraOptions={cameraOptions}
       />
 
