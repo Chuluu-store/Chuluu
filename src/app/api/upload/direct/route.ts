@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
-import ExifReader from 'exifr';
+import ExifReader from 'exifreader';
 import sharp from 'sharp';
 import path from 'path';
 
@@ -216,29 +216,70 @@ export async function POST(request: NextRequest) {
 
         try {
           // ExifReader로 먼저 시도 (특히 iPhone MOV 파일에 효과적)
-          const exifData = (await ExifReader.parse(filePath)) || {};
+          const fileBuffer = await readFile(filePath);
+          const tags = ExifReader.load(fileBuffer);
 
           // GPS 정보 추출
           let gpsData = null;
-          if (exifData.latitude && exifData.longitude) {
-            gpsData = {
-              latitude: exifData.latitude,
-              longitude: exifData.longitude,
-              altitude: exifData.GPSAltitude,
+          if (tags['GPSLatitude'] && tags['GPSLongitude']) {
+            // GPS 좌표 변환 (도분초 → 십진법)
+            const convertGPS = (value: any): number | null => {
+              if (!value || !Array.isArray(value) || value.length !== 3) {
+                // description이 이미 십진법인 경우
+                if (typeof value === 'number') return value;
+                if (value?.description && typeof value.description === 'number') return value.description;
+                return null;
+              }
+              const [degrees, minutes, seconds] = value;
+              return degrees + minutes / 60 + seconds / 3600;
             };
+
+            const latValue = tags['GPSLatitude'].description || convertGPS(tags['GPSLatitude'].value);
+            const lonValue = tags['GPSLongitude'].description || convertGPS(tags['GPSLongitude'].value);
+
+            if (latValue && lonValue) {
+              gpsData = {
+                latitude: latValue,
+                longitude: lonValue,
+                altitude: tags['GPSAltitude']?.description || tags['GPSAltitude']?.value,
+              };
+              console.log('📍 GPS 정보 추출:', gpsData);
+            }
           }
 
+          // 카메라 정보 추출
+          const make = tags['Make']?.description || tags['Make']?.value || tags['271']?.description;
+          const model = tags['Model']?.description || tags['Model']?.value || tags['272']?.description;
+          
           metadata = {
-            make: exifData.Make || exifData['271'],
-            model: exifData.Model || exifData['272'],
-            dateTimeOriginal: exifData.DateTimeOriginal || exifData['36867'] || exifData.CreateDate,
-            createDate: exifData.CreateDate || exifData['36868'],
-            duration: exifData.Duration || exifData.MediaDuration,
-            width: exifData.ImageWidth || exifData.PixelXDimension,
-            height: exifData.ImageHeight || exifData.PixelYDimension,
+            // 카메라 정보
+            make: make,
+            model: model,
+            
+            // 날짜 정보
+            dateTimeOriginal: tags['DateTimeOriginal']?.description || tags['DateTime']?.description || tags['CreateDate']?.description,
+            createDate: tags['CreateDate']?.description || tags['DateTimeDigitized']?.description,
+            
+            // 비디오 크기
+            width: tags['ImageWidth']?.value || tags['PixelXDimension']?.value || tags['Image Width']?.value,
+            height: tags['ImageHeight']?.value || tags['PixelYDimension']?.value || tags['Image Height']?.value,
+            
+            // 비디오 관련
+            duration: tags['Duration']?.value || tags['MediaDuration']?.value,
+            
+            // 촬영 설정
+            iso: tags['ISOSpeedRatings']?.value || tags['ISO']?.value,
+            fNumber: tags['FNumber']?.value || tags['FNumber']?.description,
+            exposureTime: tags['ExposureTime']?.description || tags['ExposureTime']?.value,
+            focalLength: tags['FocalLength']?.value || tags['FocalLength']?.description,
+            
+            // GPS
             gps: gpsData,
-            orientation: exifData.Orientation,
-            software: exifData.Software,
+            
+            // 기타
+            orientation: tags['Orientation']?.value || tags['Orientation']?.description,
+            software: tags['Software']?.description || tags['Software']?.value,
+            lensModel: tags['LensModel']?.description || tags['LensMake']?.description,
           };
 
           console.log('🎥 Video EXIF metadata extracted:', metadata);
@@ -258,22 +299,50 @@ export async function POST(request: NextRequest) {
             const ffprobeData = JSON.parse(stdout);
             const videoStream = ffprobeData.streams?.find((s: any) => s.codec_type === 'video');
 
+            // ffprobe에서 추출한 메타데이터 태그들
+            const formatTags = ffprobeData.format?.tags || {};
+            
+            
+            // GPS 정보 추출 (com.apple.quicktime.location.ISO6709 형식)
+            let gpsData = null;
+            if (formatTags['com.apple.quicktime.location.ISO6709']) {
+              const locationStr = formatTags['com.apple.quicktime.location.ISO6709'];
+              // +37.5275+126.8977+080.000/ 형식 파싱
+              const match = locationStr.match(/([+-]\d+\.?\d*)([+-]\d+\.?\d*)([+-]\d+\.?\d*)?/);
+              if (match) {
+                gpsData = {
+                  latitude: parseFloat(match[1]),
+                  longitude: parseFloat(match[2]),
+                  altitude: match[3] ? parseFloat(match[3]) : undefined,
+                };
+                console.log('📍 GPS from ffprobe:', gpsData);
+              }
+            }
+
             if (videoStream) {
               metadata = {
+                // 비디오 정보
                 width: videoStream.width,
                 height: videoStream.height,
                 duration: parseFloat(ffprobeData.format?.duration || 0),
                 bitrate: parseInt(ffprobeData.format?.bit_rate || 0),
                 codec: videoStream.codec_name,
+                
+                // 카메라 정보 (QuickTime 태그에서 추출)
+                make: formatTags['com.apple.quicktime.make'] || 'Apple',
+                model: formatTags['com.apple.quicktime.model'] || formatTags['com.apple.quicktime.software'],
+                
+                // 날짜 정보
+                dateTimeOriginal: formatTags['creation_time'] || formatTags['com.apple.quicktime.creationdate'],
+                createDate: formatTags['creation_time'],
+                
+                // GPS
+                gps: gpsData,
+                
+                // 기타 정보
+                software: formatTags['com.apple.quicktime.software'],
+                orientation: videoStream.rotation,
               };
-
-              // 생성 날짜 추출
-              if (ffprobeData.format?.tags?.creation_time) {
-                metadata = {
-                  ...metadata,
-                  CreateDate: ffprobeData.format.tags.creation_time,
-                };
-              }
 
               console.log('🎥 FFprobe metadata:', metadata);
             }
