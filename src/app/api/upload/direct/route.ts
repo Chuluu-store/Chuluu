@@ -10,12 +10,7 @@ import { verifyToken } from '../../../../shared/lib/auth';
 import { connectDB } from '../../../../shared/lib/database';
 import { Media } from '../../../../entities/media/model/media.model';
 import { Group } from '../../../../entities/group/model/group.model';
-import {
-  parseExifFromFile,
-  parseHeicExifBuffer,
-  parseExifFromBuffer,
-  normalizeMetadata,
-} from '../../../../shared/lib/exif-utils';
+import { parseExifFromFile, parseHeicExifBuffer, normalizeMetadata } from '../../../../shared/lib/exif-utils';
 import { convertHeicToThumbnail } from '../../../../shared/lib/heic-converter';
 
 // 업로드 설정
@@ -23,14 +18,14 @@ export const runtime = 'nodejs';
 export const maxDuration = 300; // 5분 타임아웃
 
 export async function POST(request: NextRequest) {
-  console.log('📁 Direct file upload started');
+  console.log('Direct file upload started');
   try {
     await connectDB();
 
     // 토큰 검증
     const token = request.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      console.error('❌ No token provided');
+      console.error('No token provided');
       return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 });
     }
 
@@ -50,7 +45,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!file || !groupId) {
-      console.error('❌ Missing required fields:', {
+      console.error('Missing required fields:', {
         file: !!file,
         groupId: !!groupId,
       });
@@ -139,7 +134,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`✅ File type accepted: ${file.name} (ext: ${fileExt}, type: ${file.type})`);
+    console.log(`File type accepted: ${file.name} (ext: ${fileExt}, type: ${file.type})`);
 
     // 업로드 디렉토리 생성
     const uploadDir = env.UPLOAD_PATH || '/tmp/uploads';
@@ -161,7 +156,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
 
-    console.log(`✅ File saved with EXIF preserved: ${filePath}`);
+    console.log(`File saved with EXIF preserved: ${filePath}`);
 
     // EXIF 데이터 추출 - fs로 파일에서 직접 읽기 (원본 데이터 보존)
     let metadata: any = {};
@@ -172,13 +167,13 @@ export async function POST(request: NextRequest) {
         file.name.toLowerCase().endsWith('.heic') ||
         file.name.toLowerCase().endsWith('.heif')
       ) {
-        console.log('📷 Processing image file with fs:', file.name, 'Type:', file.type);
+        console.log('Processing image file with fs:', file.name, 'Type:', file.type);
 
         // fs로 파일에서 직접 EXIF 읽기
         const exifData = await parseExifFromFile(filePath);
 
         if (exifData) {
-          console.log('✅ EXIF extracted successfully:', {
+          console.log('EXIF extracted successfully:', {
             make: exifData.make,
             model: exifData.model,
             dateTimeOriginal: exifData.dateTimeOriginal,
@@ -189,7 +184,7 @@ export async function POST(request: NextRequest) {
           metadata = exifData;
         } else {
           // EXIF 추출 실패 시 Sharp로 기본 메타데이터만 추출
-          console.log('⚠️ EXIF extraction failed, using Sharp for basic metadata');
+          console.log('EXIF extraction failed, using Sharp for basic metadata');
           try {
             const sharpMetadata = await sharp(filePath).metadata();
             metadata = {
@@ -207,12 +202,12 @@ export async function POST(request: NextRequest) {
               }
             }
           } catch (sharpError) {
-            console.error('⚠️ Sharp metadata extraction also failed:', sharpError);
+            console.error('Sharp metadata extraction also failed:', sharpError);
           }
         }
       } else if (file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mov')) {
         // 비디오 파일의 메타데이터 추출 시도 (MOV 파일 특별 처리)
-        console.log(`🎬 Processing video file: ${file.name}`);
+        console.log(`Processing video file: ${file.name}`);
 
         try {
           // ExifReader로 먼저 시도 (특히 iPhone MOV 파일에 효과적)
@@ -252,6 +247,7 @@ export async function POST(request: NextRequest) {
           const model = tags['Model']?.description || tags['Model']?.value || tags['272']?.description;
           
           metadata = {
+
             // 카메라 정보
             make: make,
             model: model,
@@ -282,9 +278,9 @@ export async function POST(request: NextRequest) {
             lensModel: tags['LensModel']?.description || tags['LensMake']?.description,
           };
 
-          console.log('🎥 Video EXIF metadata extracted:', metadata);
+          console.log('Video EXIF metadata extracted:', metadata);
         } catch (videoExifError) {
-          console.log('⚠️ Video EXIF extraction failed, using ffprobe as fallback');
+          console.log('Video EXIF extraction failed, using ffprobe as fallback');
 
           // ffprobe로 비디오 메타데이터 추출 시도
           try {
@@ -343,11 +339,9 @@ export async function POST(request: NextRequest) {
                 software: formatTags['com.apple.quicktime.software'],
                 orientation: videoStream.rotation,
               };
-
-              console.log('🎥 FFprobe metadata:', metadata);
             }
           } catch (ffprobeError) {
-            console.warn('⚠️ FFprobe not available:', ffprobeError);
+            console.warn('FFprobe not available:', ffprobeError);
           }
         }
       }
@@ -361,15 +355,15 @@ export async function POST(request: NextRequest) {
           height: sharpMetadata.height,
           format: sharpMetadata.format,
         };
-        console.log('📸 Sharp metadata:', metadata);
+        console.log('Sharp metadata:', metadata);
       } catch (sharpError) {
-        console.warn('⚠️ Sharp metadata extraction failed:', sharpError);
+        console.warn('Sharp metadata extraction failed:', sharpError);
       }
     }
 
     // 메타데이터 정규화
     const normalizedMetadata = normalizeMetadata(metadata);
-    console.log('📸 Normalized metadata:', {
+    console.log('Normalized metadata:', {
       width: normalizedMetadata.width,
       height: normalizedMetadata.height,
       cameraMake: normalizedMetadata.cameraMake,
@@ -394,7 +388,7 @@ export async function POST(request: NextRequest) {
 
         // HEIC 파일 특별 처리 - JPEG 썸네일 생성
         if (file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
-          console.log(`🔄 Converting HEIC to JPEG thumbnail...`);
+          console.log(`Converting HEIC to JPEG thumbnail...`);
 
           // heic-converter를 사용하여 JPEG 썸네일 생성
           const thumbnailBuffer = await convertHeicToThumbnail(filePath, 300);
@@ -402,9 +396,9 @@ export async function POST(request: NextRequest) {
           if (thumbnailBuffer) {
             // 썸네일 버퍼를 파일로 저장
             await writeFile(thumbnailPath, thumbnailBuffer);
-            console.log(`✅ HEIC thumbnail saved as JPEG: ${thumbnailPath}`);
+            console.log(`HEIC thumbnail saved as JPEG: ${thumbnailPath}`);
           } else {
-            console.warn(`⚠️ HEIC thumbnail conversion failed, will generate on-demand`);
+            console.warn(`HEIC thumbnail conversion failed, will generate on-demand`);
             // 썸네일 생성 실패 시 경로는 설정하되 나중에 동적 생성
           }
         } else {
@@ -417,10 +411,10 @@ export async function POST(request: NextRequest) {
             })
             .jpeg({ quality: 80 })
             .toFile(thumbnailPath);
-          console.log(`✅ Image thumbnail generated: ${thumbnailPath}`);
+          console.log(`Image thumbnail generated: ${thumbnailPath}`);
         }
       } catch (error) {
-        console.warn('⚠️ Image thumbnail generation failed:', error);
+        console.warn('Image thumbnail generation failed:', error);
       }
     }
 
@@ -435,7 +429,7 @@ export async function POST(request: NextRequest) {
         const thumbnailName = `thumb_${fileName.replace(extension, '.jpg')}`;
         const finalThumbnailPath = path.join(thumbnailDir, thumbnailName);
 
-        console.log(`🎬 Generating video thumbnail for: ${file.name}`);
+        console.log(` Generating video thumbnail for: ${file.name}`);
 
         // ffmpeg 명령어로 첫 프레임 추출
         const { exec } = await import('child_process');
@@ -466,12 +460,12 @@ export async function POST(request: NextRequest) {
             await writeFile(finalThumbnailPath, optimizedBuffer);
 
             thumbnailPath = finalThumbnailPath;
-            console.log(`✅ Video thumbnail generated: ${thumbnailPath}`);
+            console.log(`Video thumbnail generated: ${thumbnailPath}`);
           } else {
-            console.warn('⚠️ Video thumbnail file not created');
+            console.warn('Video thumbnail file not created');
           }
         } catch (ffmpegError) {
-          console.warn('⚠️ ffmpeg thumbnail generation failed:', ffmpegError);
+          console.warn('ffmpeg thumbnail generation failed:', ffmpegError);
           // 실패 시 기본 플레이스홀더 이미지 생성
           try {
             const placeholderBuffer = await sharp({
@@ -499,13 +493,13 @@ export async function POST(request: NextRequest) {
 
             await writeFile(finalThumbnailPath, placeholderBuffer);
             thumbnailPath = finalThumbnailPath;
-            console.log('⚠️ Video placeholder thumbnail created');
+            console.log('Video placeholder thumbnail created');
           } catch (placeholderError) {
             console.error('Failed to create video placeholder:', placeholderError);
           }
         }
       } catch (error) {
-        console.warn('⚠️ Video thumbnail generation failed:', error);
+        console.warn('Video thumbnail generation failed:', error);
       }
     }
 
@@ -531,7 +525,7 @@ export async function POST(request: NextRequest) {
       uploadedAt: new Date(),
     };
 
-    console.log('📝 Creating media document with data:', {
+    console.log('Creating media document with data:', {
       filename: mediaData.filename,
       path: mediaData.path,
       groupId: mediaData.groupId,
@@ -544,7 +538,7 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to create media document in database');
     }
 
-    console.log(`✅ Media saved to database: ${media._id}`);
+    console.log(`Media saved to database: ${media._id}`);
 
     // 그룹의 미디어 카운트 업데이트
     await Group.findByIdAndUpdate(groupId, {
@@ -555,11 +549,11 @@ export async function POST(request: NextRequest) {
     // 검증: 실제로 저장되었는지 확인
     const savedMedia = await Media.findById(media._id);
     if (!savedMedia) {
-      console.error('❌ Media was not properly saved to database');
+      console.error('Media was not properly saved to database');
       throw new Error('Media save verification failed');
     }
 
-    console.log(`✅ Media verified in database: ${savedMedia._id}`);
+    console.log(`Media verified in database: ${savedMedia._id}`);
 
     return NextResponse.json({
       success: true,
@@ -569,7 +563,7 @@ export async function POST(request: NextRequest) {
       thumbnailPath: thumbnailPath ? `/api/media/thumbnail/${media._id}` : null,
     });
   } catch (error) {
-    console.error('❌ Upload error:', error);
+    console.error('Upload error:', error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : '파일 업로드 중 오류가 발생했습니다',

@@ -93,7 +93,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
       // EXIF 디버깅
       if (item.metadata) {
-        console.log(`📸 Media ${item._id} EXIF:`, {
+        console.log(`Media ${item._id} EXIF:`, {
           filename: item.originalName,
           rawMetadata: item.metadata,
           cameraMake: item.metadata?.cameraMake,

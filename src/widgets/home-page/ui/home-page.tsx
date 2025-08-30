@@ -20,7 +20,7 @@ export function HomePage() {
   });
 
   useEffect(() => {
-    console.log('HomePage currentPage changed to:', currentPage);
+    console.log('[HomePage] 현재 페이지 변경됨 :', currentPage);
   }, [currentPage]);
 
   useEffect(() => {
@@ -29,15 +29,22 @@ export function HomePage() {
 
     if (token && user) {
       setIsLoggedIn(true);
+      
+      // 토큰 모니터링 시작
+      if (typeof window !== 'undefined') {
+        import('../../../shared/lib/token-manager').then(({ startTokenMonitoring }) => {
+          startTokenMonitoring();
+        });
+      }
     }
   }, []);
 
   const handleNavigate = (page: 'home' | 'groups') => {
-    console.log('Navigation clicked, changing from', currentPage, 'to', page);
+    console.log('[HomePage] 네비게이션 클릭됨 :', `${currentPage} → ${page}`);
     setCurrentPage(page);
 
     setTimeout(() => {
-      console.log('After state update, currentPage should be:', page);
+      console.log('[HomePage] 상태 업데이트 완료 :', page);
     }, 0);
 
     if (typeof window !== 'undefined') {
