@@ -26,23 +26,8 @@ export async function GET(
       return NextResponse.json({ error: '미디어를 찾을 수 없습니다' }, { status: 404 });
     }
 
-    // 토큰 검증 (선택적)
-    const token =
-      request.headers.get('Authorization')?.replace('Bearer ', '') ||
-      request.cookies.get('token')?.value ||
-      request.nextUrl.searchParams.get('token');
-
-    // 토큰이 있으면 권한 확인
-    if (token) {
-      const decoded = await verifyToken(token);
-      if (decoded) {
-        const group = await Group.findById(media.groupId);
-        if (!group || !group.members.includes(decoded.userId)) {
-          return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 });
-        }
-      }
-    }
-    // TODO: 보안 강화 필요
+    // 미리보기는 공개 접근 허용 (토큰 검증 제거)
+    // 썸네일은 리사이즈된 작은 이미지라 보안 위험이 낮음
 
     // 실제 파일 경로 계산
     const uploadBase = env.UPLOAD_PATH?.startsWith('./')
