@@ -35,7 +35,7 @@ export function MediaCard({
     }
   };
 
-  const thumbnailUrl = `/api/media/thumbnail/${media._id}?size=300`;
+  const thumbnailUrl = `/api/media/thumbnail/${media.id}?size=300`;
   const isVideo = media.type === 'video';
 
   return (
