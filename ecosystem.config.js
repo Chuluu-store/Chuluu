@@ -2,8 +2,8 @@ module.exports = {
   apps: [
     {
       name: "chuluu",
-      script: "yarn",
-      args: "start",
+      script: "node",
+      args: ".next/standalone/server.js",
       instances: 1,
       exec_mode: "fork",
       autorestart: true,
