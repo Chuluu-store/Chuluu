@@ -106,8 +106,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       groupId,
       status: 'completed',
       $or: [
-        { 'metadata.cameraMake': { $exists: true, $ne: null, $ne: '' } },
-        { 'metadata.cameraModel': { $exists: true, $ne: null, $ne: '' } }
+        { 'metadata.cameraMake': { $exists: true, $ne: null, $nin: ['', null] } },
+        { 'metadata.cameraModel': { $exists: true, $ne: null, $nin: ['', null] } }
       ]
     }, 'metadata.cameraMake metadata.cameraModel').lean();
 
