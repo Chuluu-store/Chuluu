@@ -23,30 +23,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       return NextResponse.json({ error: '미디어를 찾을 수 없습니다' }, { status: 404 });
     }
 
-    // 토큰 검증 (선택적 - 쿠키 또는 헤더에서)
-    const token =
-      request.headers.get('Authorization')?.replace('Bearer ', '') ||
-      request.cookies.get('token')?.value ||
-      request.nextUrl.searchParams.get('token');
-
-    // 토큰이 있으면 권한 확인
-    if (token) {
-      const decoded = await verifyToken(token);
-      if (decoded) {
-        // 그룹 권한 확인
-        const group = await Group.findById(media.groupId);
-        if (!group || !group.members.includes(decoded.userId)) {
-          return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 });
-        }
-      } else {
-        // 토큰이 유효하지 않은 경우
-        console.log('[GET /api/media/file] 유효하지 않은 토큰으로 미디어 접근 시도 :', mediaId);
-        // 임시로 공개 접근 허용하지만 로그로 추적
-      }
-    }
-
-    // 임시로 공개 접근 허용 (나중에 보안 강화 필요)
-    // TODO: 보안 강화 - 서명된 URL 또는 임시 토큰 사용
+    // 다운로드는 공개 접근 허용 (토큰 검증 제거)
+    // TODO: 추후 보안 강화 필요시 서명된 URL 방식 사용
 
     // 실제 파일 경로 계산 (상대 경로를 절대 경로로 변환)
     const uploadBase = env.UPLOAD_PATH?.startsWith('./')
