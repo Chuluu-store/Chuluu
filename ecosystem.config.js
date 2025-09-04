@@ -15,7 +15,6 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3000,
-        MONGODB_URI: "mongodb://localhost:27017/chuluu-prod", // 프로덕션용 DB
         NEXT_PUBLIC_API_URL: "https://chuluu.store",
         UPLOAD_PATH: "/home/pi/uploads",
         MAX_FILE_SIZE: "500MB",
