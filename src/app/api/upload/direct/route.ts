@@ -11,7 +11,6 @@ import { connectDB } from '../../../../shared/lib/database';
 import { Media } from '../../../../entities/media/model/media.model';
 import { Group } from '../../../../entities/group/model/group.model';
 import { parseExifFromFile, parseHeicExifBuffer, normalizeMetadata } from '../../../../shared/lib/exif-utils';
-import { convertHeicToThumbnail } from '../../../../shared/lib/heic-converter';
 
 // 업로드 설정
 export const runtime = 'nodejs';
@@ -171,7 +170,6 @@ export async function POST(request: NextRequest) {
 
         // fs로 파일에서 직접 EXIF 읽기
         const exifData = await parseExifFromFile(filePath);
-
         if (exifData) {
           console.log('EXIF extracted successfully:', {
             make: exifData.make,
@@ -372,150 +370,17 @@ export async function POST(request: NextRequest) {
       iso: normalizedMetadata.iso,
     });
 
-    // 썸네일 생성
-    let thumbnailPath = null;
-
-    // 이미지 썸네일
-    if (file.type.startsWith('image/')) {
-      try {
-        const thumbnailDir = path.join(groupDir, 'thumbnails');
-        if (!existsSync(thumbnailDir)) {
-          await mkdir(thumbnailDir, { recursive: true });
-        }
-
-        const thumbnailName = `thumb_${fileName.replace(extension, '.jpg')}`;
-        thumbnailPath = path.join(thumbnailDir, thumbnailName);
-
-        // HEIC 파일 특별 처리 - JPEG 썸네일 생성
-        if (file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
-          console.log(`Converting HEIC to JPEG thumbnail...`);
-
-          // heic-converter를 사용하여 JPEG 썸네일 생성
-          const thumbnailBuffer = await convertHeicToThumbnail(filePath, 300);
-
-          if (thumbnailBuffer) {
-            // 썸네일 버퍼를 파일로 저장
-            await writeFile(thumbnailPath, thumbnailBuffer);
-            console.log(`HEIC thumbnail saved as JPEG: ${thumbnailPath}`);
-          } else {
-            console.warn(`HEIC thumbnail conversion failed, will generate on-demand`);
-            // 썸네일 생성 실패 시 경로는 설정하되 나중에 동적 생성
-          }
-        } else {
-          // 일반 이미지 썸네일 생성
-          await sharp(filePath)
-            .rotate() // EXIF 회전 정보 적용
-            .resize(300, 300, {
-              fit: 'inside',
-              withoutEnlargement: true,
-            })
-            .jpeg({ quality: 80 })
-            .toFile(thumbnailPath);
-          console.log(`Image thumbnail generated: ${thumbnailPath}`);
-        }
-      } catch (error) {
-        console.warn('Image thumbnail generation failed:', error);
-      }
-    }
-
-    // 비디오 썸네일 (첫 프레임 캡처) - MOV 파일 포함
-    if (file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mov')) {
-      try {
-        const thumbnailDir = path.join(groupDir, 'thumbnails');
-        if (!existsSync(thumbnailDir)) {
-          await mkdir(thumbnailDir, { recursive: true });
-        }
-
-        const thumbnailName = `thumb_${fileName.replace(extension, '.jpg')}`;
-        const finalThumbnailPath = path.join(thumbnailDir, thumbnailName);
-
-        console.log(` Generating video thumbnail for: ${file.name}`);
-
-        // ffmpeg 명령어로 첫 프레임 추출
-        const { exec } = await import('child_process');
-        const { promisify } = await import('util');
-        const execAsync = promisify(exec);
-
-        try {
-          // 개선된 ffmpeg 명령어 - MOV 파일과 회전 정보 처리
-          // 1초 지점의 프레임 추출 (첫 프레임이 검은색일 수 있음)
-          // 자동 회전 적용 (-autorotate 기본값)
-          const ffmpegCmd = `ffmpeg -i "${filePath}" -ss 00:00:01 -vframes 1 -vf "scale=600:-1" -q:v 2 "${finalThumbnailPath}"`;
-
-          await execAsync(ffmpegCmd);
-
-          // 썸네일이 생성되었는지 확인
-          if (existsSync(finalThumbnailPath)) {
-            // Sharp로 최종 리사이즈 및 품질 조정
-            const tempBuffer = await readFile(finalThumbnailPath);
-            const optimizedBuffer = await sharp(tempBuffer)
-              .resize(300, 300, {
-                fit: 'inside',
-                withoutEnlargement: true,
-              })
-              .jpeg({ quality: 85 })
-              .toBuffer();
-
-            // 최적화된 버퍼를 파일로 저장
-            await writeFile(finalThumbnailPath, optimizedBuffer);
-
-            thumbnailPath = finalThumbnailPath;
-            console.log(`Video thumbnail generated: ${thumbnailPath}`);
-          } else {
-            console.warn('Video thumbnail file not created');
-          }
-        } catch (ffmpegError) {
-          console.warn('ffmpeg thumbnail generation failed:', ffmpegError);
-          // 실패 시 기본 플레이스홀더 이미지 생성
-          try {
-            const placeholderBuffer = await sharp({
-              create: {
-                width: 300,
-                height: 300,
-                channels: 3,
-                background: { r: 44, g: 40, b: 36 },
-              },
-            })
-              .composite([
-                {
-                  input: Buffer.from(
-                    `<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="100%" height="100%" fill="#2c2824"/>
-                  <polygon points="120,100 120,200 200,150" fill="white" opacity="0.7"/>
-                </svg>`
-                  ),
-                  top: 0,
-                  left: 0,
-                },
-              ])
-              .jpeg({ quality: 80 })
-              .toBuffer();
-
-            await writeFile(finalThumbnailPath, placeholderBuffer);
-            thumbnailPath = finalThumbnailPath;
-            console.log('Video placeholder thumbnail created');
-          } catch (placeholderError) {
-            console.error('Failed to create video placeholder:', placeholderError);
-          }
-        }
-      } catch (error) {
-        console.warn('Video thumbnail generation failed:', error);
-      }
-    }
+    console.log('Skipping thumbnail generation - using original images directly');
 
     // 미디어 정보를 데이터베이스에 저장
     // 상대 경로로 저장 (웹에서 접근 가능한 경로)
     const relativePath = `/uploads/${groupId}/${fileName}`;
-    const relativeThumbnailPath = thumbnailPath
-      ? `/uploads/${groupId}/thumbnails/thumb_${fileName.replace(extension, '.jpg')}`
-      : null;
 
     // Media 문서 생성
     const mediaData = {
       filename: fileName,
       originalName,
       path: relativePath,
-      thumbnailPath: relativeThumbnailPath,
       mimeType: file.type || 'application/octet-stream',
       size: file.size,
       groupId,
@@ -560,7 +425,6 @@ export async function POST(request: NextRequest) {
       mediaId: media._id,
       filename: originalName,
       size: file.size,
-      thumbnailPath: thumbnailPath ? `/api/media/thumbnail/${media._id}` : null,
     });
   } catch (error) {
     console.error('Upload error:', error);

@@ -33,12 +33,27 @@ export function BulkUpload({ groupId, onUploadComplete, onClose }: BulkUploadPro
 
       // HEIC 파일 처리 및 유효성 검사
       for (const file of Array.from(selectedFiles)) {
+        // 파일 정보 디버깅
+        console.log('🔍 선택된 파일 정보:', {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          lastModified: new Date(file.lastModified).toISOString()
+        });
+
         // HEIC 파일 확장자 체크
         const isHeic =
           file.type === 'image/heic' ||
           file.type === 'image/heif' ||
           file.name.toLowerCase().endsWith('.heic') ||
           file.name.toLowerCase().endsWith('.heif');
+        
+        console.log('🔍 HEIC 파일 체크:', {
+          fileName: file.name,
+          isHeic,
+          fileType: file.type,
+          hasHeicExt: file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')
+        });
 
         if (!isValidFileType(file) && !isHeic) {
           errors.push(`${file.name}: 지원하지 않는 파일 형식`);
