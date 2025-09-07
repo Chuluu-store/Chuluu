@@ -45,8 +45,22 @@ export async function GET(
     }
 
     // 그룹 권한 확인
+    console.log('[THUMBNAIL] 미디어 그룹 ID:', media.groupId);
+    console.log('[THUMBNAIL] 사용자 ID:', decoded.userId);
+    
     const group = await Group.findById(media.groupId);
-    if (!group || !group.members.includes(decoded.userId)) {
+    console.log('[THUMBNAIL] 그룹 찾기 결과:', group ? '그룹 있음' : '그룹 없음');
+    
+    if (!group) {
+      console.log('[THUMBNAIL] 그룹을 찾을 수 없습니다');
+      return NextResponse.json({ error: '그룹을 찾을 수 없습니다' }, { status: 404 });
+    }
+    
+    console.log('[THUMBNAIL] 그룹 멤버:', group.members);
+    console.log('[THUMBNAIL] 권한 확인:', group.members.includes(decoded.userId) ? '권한 있음' : '권한 없음');
+    
+    if (!group.members.includes(decoded.userId)) {
+      console.log('[THUMBNAIL] 접근 권한이 없습니다');
       return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 });
     }
 
