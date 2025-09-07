@@ -46,12 +46,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 쿠키에 토큰 저장 (httpOnly로 보안 강화)
+    // 쿠키에 토큰 저장 (httpOnly 제거로 JavaScript 접근 허용)
     response.cookies.set('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false, // JavaScript에서 접근 가능하도록 변경
+      secure: false, // 개발 환경에서도 작동하도록 변경
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7일
+      path: '/', // 전체 사이트에서 접근 가능하도록 설정
+      domain: 'localhost', // 도메인 명시
     });
 
     return response;

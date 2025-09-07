@@ -23,8 +23,27 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       return NextResponse.json({ error: '미디어를 찾을 수 없습니다' }, { status: 404 });
     }
 
-    // 다운로드는 공개 접근 허용 (토큰 검증 제거)
-    // TODO: 추후 보안 강화 필요시 서명된 URL 방식 사용
+    // 쿠키에서 토큰 검증
+    const token = request.cookies.get('token')?.value;
+    console.log('[FILE] 토큰 확인:', token ? '토큰 있음' : '토큰 없음');
+    
+    if (!token) {
+      console.log('[FILE] 토큰이 없습니다');
+      return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 });
+    }
+
+    const decoded = await verifyToken(token);
+    console.log('[FILE] 토큰 검증 결과:', decoded ? '성공' : '실패');
+    if (!decoded) {
+      console.log('[FILE] 유효하지 않은 토큰입니다');
+      return NextResponse.json({ error: '유효하지 않은 토큰입니다' }, { status: 401 });
+    }
+
+    // 그룹 권한 확인
+    const group = await Group.findById(media.groupId);
+    if (!group || !group.members.includes(decoded.userId)) {
+      return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 });
+    }
 
     // 실제 파일 경로 계산 (상대 경로를 절대 경로로 변환)
     const uploadBase = env.UPLOAD_PATH?.startsWith('./')

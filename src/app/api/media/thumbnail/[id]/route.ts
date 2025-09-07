@@ -26,8 +26,29 @@ export async function GET(
       return NextResponse.json({ error: '미디어를 찾을 수 없습니다' }, { status: 404 });
     }
 
-    // 미리보기는 공개 접근 허용 (토큰 검증 제거)
-    // 썸네일은 리사이즈된 작은 이미지라 보안 위험이 낮음
+    // 쿠키에서 토큰 검증
+    const token = request.cookies.get('token')?.value;
+    console.log('[THUMBNAIL] 쿠키 헤더:', request.headers.get('cookie'));
+    console.log('[THUMBNAIL] 쿠키 개수:', request.cookies.size);
+    console.log('[THUMBNAIL] 토큰 확인:', token ? `토큰 있음: ${token.substring(0, 10)}...` : '토큰 없음');
+    
+    if (!token) {
+      console.log('[THUMBNAIL] 토큰이 없습니다');
+      return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 });
+    }
+
+    const decoded = await verifyToken(token);
+    console.log('[THUMBNAIL] 토큰 검증 결과:', decoded ? '성공' : '실패');
+    if (!decoded) {
+      console.log('[THUMBNAIL] 유효하지 않은 토큰입니다');
+      return NextResponse.json({ error: '유효하지 않은 토큰입니다' }, { status: 401 });
+    }
+
+    // 그룹 권한 확인
+    const group = await Group.findById(media.groupId);
+    if (!group || !group.members.includes(decoded.userId)) {
+      return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 });
+    }
 
     // 실제 파일 경로 계산
     const uploadBase = env.UPLOAD_PATH?.startsWith('./')
