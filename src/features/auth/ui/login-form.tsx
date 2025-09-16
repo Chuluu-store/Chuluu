@@ -56,6 +56,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
+      // 로그인 상태 변경 이벤트 발생
+      window.dispatchEvent(new CustomEvent('loginStateChanged'));
+
       if (onSuccess) {
         onSuccess(data);
       }

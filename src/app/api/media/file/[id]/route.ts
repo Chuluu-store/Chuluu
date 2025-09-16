@@ -3,7 +3,7 @@ import { readFile, stat } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 
-import { verifyToken } from '../../../../../shared/lib/auth';
+import { verifyToken, getTokenFromRequest } from '../../../../../shared/lib/auth';
 import { connectDB } from '../../../../../shared/lib/database';
 import { Media } from '../../../../../entities/media/model/media.model';
 import { Group } from '../../../../../entities/group/model/group.model';
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       return NextResponse.json({ error: '미디어를 찾을 수 없습니다' }, { status: 404 });
     }
 
-    // 쿠키에서 토큰 검증
-    const token = request.cookies.get('token')?.value;
+    // 헤더와 쿠키에서 토큰 확인
+    const token = getTokenFromRequest(request);
     console.log('[FILE] 토큰 확인:', token ? '토큰 있음' : '토큰 없음');
     
     if (!token) {

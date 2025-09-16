@@ -10,7 +10,7 @@ export function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
 
-  useEffect(() => {
+  const updateLoginState = () => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
 
@@ -18,12 +18,38 @@ export function Header() {
       setIsLoggedIn(true);
       const userData = JSON.parse(user);
       setUsername(userData.username || '');
+    } else {
+      setIsLoggedIn(false);
+      setUsername('');
     }
+  };
+
+  useEffect(() => {
+    updateLoginState();
+    
+    // 로그인 상태 변경 감지
+    const handleLoginStateChange = () => {
+      console.log('[Header] Login state changed, updating...');
+      updateLoginState();
+    };
+    
+    window.addEventListener('loginStateChanged', handleLoginStateChange);
+    
+    return () => {
+      window.removeEventListener('loginStateChanged', handleLoginStateChange);
+    };
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    // 쿠키에서도 토큰 제거
+    document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    
+    // 로그아웃 이벤트 발생
+    window.dispatchEvent(new CustomEvent('loginStateChanged'));
+    
     window.location.reload();
   };
 

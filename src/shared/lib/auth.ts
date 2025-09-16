@@ -30,3 +30,29 @@ export async function verifyToken(token: string): Promise<TokenPayload | null> {
     return null;
   }
 }
+
+export function getTokenFromRequest(request: Request): string | null {
+  // Authorization 헤더에서 토큰 확인 (Bearer 형식)
+  const authHeader = request.headers.get('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.replace('Bearer ', '');
+  }
+
+  // 쿠키에서 토큰 확인
+  if ('cookies' in request) {
+    const cookieHeader = request.headers.get('cookie');
+    if (cookieHeader) {
+      const cookies = Object.fromEntries(
+        cookieHeader.split(';').map(c => {
+          const [key, ...values] = c.trim().split('=');
+          return [key, values.join('=')];
+        })
+      );
+      if (cookies.token) {
+        return cookies.token;
+      }
+    }
+  }
+
+  return null;
+}

@@ -23,7 +23,7 @@ export function HomePage() {
     console.log('[HomePage] 현재 페이지 변경됨 :', currentPage);
   }, [currentPage]);
 
-  useEffect(() => {
+  const updateLoginState = () => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
 
@@ -36,7 +36,25 @@ export function HomePage() {
           startTokenMonitoring();
         });
       }
+    } else {
+      setIsLoggedIn(false);
     }
+  };
+
+  useEffect(() => {
+    updateLoginState();
+    
+    // 로그인 상태 변경 감지
+    const handleLoginStateChange = () => {
+      console.log('[HomePage] Login state changed, updating...');
+      updateLoginState();
+    };
+    
+    window.addEventListener('loginStateChanged', handleLoginStateChange);
+    
+    return () => {
+      window.removeEventListener('loginStateChanged', handleLoginStateChange);
+    };
   }, []);
 
   const handleNavigate = (page: 'home' | 'groups') => {
@@ -55,7 +73,7 @@ export function HomePage() {
   const handleLoginSuccess = () => {
     setShowLogin(false);
     setIsLoggedIn(true);
-    window.location.reload();
+    // 페이지 새로고침 제거 - 커스텀 이벤트로 컴포넌트들이 자동 업데이트됨
   };
 
   const openGroupModal = (type: 'create' | 'join') => {

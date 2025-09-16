@@ -3,7 +3,7 @@ import { existsSync } from 'fs';
 import sharp from 'sharp';
 import path from 'path';
 
-import { verifyToken } from '../../../../../shared/lib/auth';
+import { verifyToken, getTokenFromRequest } from '../../../../../shared/lib/auth';
 import { connectDB } from '../../../../../shared/lib/database';
 import { Media } from '../../../../../entities/media/model/media.model';
 import { Group } from '../../../../../entities/group/model/group.model';
@@ -26,10 +26,8 @@ export async function GET(
       return NextResponse.json({ error: '미디어를 찾을 수 없습니다' }, { status: 404 });
     }
 
-    // 쿠키에서 토큰 검증
-    const token = request.cookies.get('token')?.value;
-    console.log('[THUMBNAIL] 쿠키 헤더:', request.headers.get('cookie'));
-    console.log('[THUMBNAIL] 쿠키 개수:', request.cookies.size);
+    // 헤더와 쿠키에서 토큰 확인
+    const token = getTokenFromRequest(request);
     console.log('[THUMBNAIL] 토큰 확인:', token ? `토큰 있음: ${token.substring(0, 10)}...` : '토큰 없음');
     
     if (!token) {

@@ -20,6 +20,9 @@ export function clearExpiredToken(): void {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
+      // 쿠키에서도 토큰 제거
+      document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      
       // 로그인 페이지로 리다이렉트 (현재 페이지가 인증이 필요한 경우)
       if (window.location.pathname !== '/') {
         window.location.href = '/';
@@ -30,6 +33,9 @@ export function clearExpiredToken(): void {
     // 토큰이 손상된 경우에도 정리
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    // 쿠키에서도 토큰 제거
+    document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
   }
 }
 
