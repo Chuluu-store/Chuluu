@@ -23,6 +23,11 @@ interface MediaItem {
     _id: string;
     name: string;
   };
+  uploadedBy?: {
+    _id: string;
+    username: string;
+    email: string;
+  };
 }
 
 export function MediaGridWidget() {
@@ -113,7 +118,9 @@ export function MediaGridWidget() {
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   {/* 업로더 이름 표시 */}
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
-                    <p className="text-xs text-white/80 truncate">{item.group?.name || '김승찬'}</p>
+                    <p className="text-xs text-white/80 truncate">
+                      {item.uploadedBy?.username || item.uploadedBy?.email?.split('@')[0] || 'Unknown'}
+                    </p>
                   </div>
                 </div>
               )}

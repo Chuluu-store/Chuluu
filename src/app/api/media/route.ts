@@ -29,7 +29,13 @@ export async function GET(request: NextRequest) {
     // 사용자가 로그인한 경우, 본인이 업로드한 미디어만 가져오기
     const query = userId ? { uploadedBy: userId, status: 'completed' } : { status: 'completed' };
 
-    const media = await Media.find(query).sort({ createdAt: -1, uploadedAt: -1 }).skip(skip).limit(limit).lean();
+    const media = await Media.find(query)
+      .populate('uploadedBy', 'username email')
+      .populate('groupId', 'name')
+      .sort({ createdAt: -1, uploadedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
     const total = await Media.countDocuments(query);
 
@@ -47,8 +53,12 @@ export async function GET(request: NextRequest) {
         height: item.metadata?.height,
         dateTaken: item.metadata?.takenAt,
       },
-      group: item.groupId ? { _id: item.groupId } : null,
-      uploadedBy: item.uploadedBy,
+      group: item.groupId ? { _id: item.groupId._id || item.groupId, name: item.groupId.name || 'Unknown Group' } : null,
+      uploadedBy: item.uploadedBy ? {
+        _id: item.uploadedBy._id || item.uploadedBy,
+        username: item.uploadedBy.username || 'Unknown User',
+        email: item.uploadedBy.email || ''
+      } : null,
     }));
 
     return NextResponse.json({
