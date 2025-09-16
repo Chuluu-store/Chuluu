@@ -15,6 +15,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  CheckSquare,
+  Square,
+  CheckCircle2,
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -167,6 +170,10 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mediaToDelete, setMediaToDelete] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // 미디어 데이터 로드
@@ -430,6 +437,71 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
     }
   };
 
+  // 선택 모드 토글
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    setSelectedItems(new Set());
+  };
+
+  // 아이템 선택 토글
+  const toggleItemSelection = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  // 전체 선택/해제 (현재 필터된 결과에 대해)
+  const selectAll = () => {
+    if (selectedItems.size === allMedia.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(allMedia.map(item => item.id)));
+    }
+  };
+
+  // 선택된 항목들 일괄 다운로드
+  const downloadSelected = async () => {
+    if (selectedItems.size === 0) return;
+    
+    setDownloading(true);
+    setDownloadProgress({ current: 0, total: selectedItems.size });
+    
+    const selectedMediaItems = allMedia.filter(item => selectedItems.has(item.id));
+    
+    for (let i = 0; i < selectedMediaItems.length; i++) {
+      const item = selectedMediaItems[i];
+      setDownloadProgress({ current: i + 1, total: selectedItems.size });
+      
+      try {
+        await handleDownloadMedia(item);
+        
+        // 다운로드 간격 조절
+        await new Promise(resolve => setTimeout(resolve, 800));
+      } catch (error) {
+        console.error(`Download failed for ${item.originalName}:`, error);
+        toast.error(`${item.originalName} 다운로드 실패`);
+      }
+    }
+    
+    setDownloading(false);
+    setIsSelectionMode(false);
+    setSelectedItems(new Set());
+    toast.success(`${selectedItems.size}개 파일 다운로드 완료`);
+  };
+
+  // 미디어 클릭 핸들러 수정
+  const handleMediaClickWithSelection = (media: MediaItem) => {
+    if (isSelectionMode) {
+      toggleItemSelection(media.id);
+    } else {
+      handleMediaClick(media);
+    }
+  };
+
   // 파일 크기 포맷
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -475,20 +547,42 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
 
           <h1 className="text-xl font-semibold text-white">갤러리</h1>
 
-          <div className="flex items-center gap-3 text-sm text-stone-400">
-            {mediaCounts.images > 0 && (
-              <span className="flex items-center gap-1">
-                <span className="text-stone-300">{mediaCounts.images}</span>
-                <span>사진</span>
-              </span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-sm text-stone-400">
+              {mediaCounts.images > 0 && (
+                <span className="flex items-center gap-1">
+                  <span className="text-stone-300">{mediaCounts.images}</span>
+                  <span>사진</span>
+                </span>
+              )}
+              {mediaCounts.videos > 0 && (
+                <span className="flex items-center gap-1">
+                  <span className="text-stone-300">{mediaCounts.videos}</span>
+                  <span>동영상</span>
+                </span>
+              )}
+              {mediaCounts.images === 0 && mediaCounts.videos === 0 && <span>미디어 없음</span>}
+            </div>
+            
+            {/* 선택 모드 토글 버튼 */}
+            {allMedia.length > 0 && (
+              <button
+                onClick={toggleSelectionMode}
+                className="flex items-center gap-2 px-3 py-1.5 bg-stone-700 hover:bg-stone-600 text-white text-sm rounded-lg transition-colors"
+              >
+                {isSelectionMode ? (
+                  <>
+                    <X className="w-4 h-4" />
+                    취소
+                  </>
+                ) : (
+                  <>
+                    <CheckSquare className="w-4 h-4" />
+                    선택
+                  </>
+                )}
+              </button>
             )}
-            {mediaCounts.videos > 0 && (
-              <span className="flex items-center gap-1">
-                <span className="text-stone-300">{mediaCounts.videos}</span>
-                <span>동영상</span>
-              </span>
-            )}
-            {mediaCounts.images === 0 && mediaCounts.videos === 0 && <span>미디어 없음</span>}
           </div>
         </div>
       </div>
@@ -506,6 +600,46 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
         }}
         cameraOptions={cameraOptions}
       />
+
+      {/* 선택 모드 컨트롤 바 */}
+      {isSelectionMode && (
+        <div className="sticky top-20 z-10 bg-stone-900/80 backdrop-blur-xl border-b border-stone-700/30">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={selectAll}
+                  className="flex items-center gap-2 text-white text-sm hover:text-stone-300"
+                >
+                  {selectedItems.size === allMedia.length && allMedia.length > 0 ? (
+                    <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                  ) : (
+                    <Square className="w-4 h-4" />
+                  )}
+                  {selectedItems.size === allMedia.length && allMedia.length > 0 ? '전체 해제' : '전체 선택'}
+                </button>
+                <span className="text-stone-300 text-sm">
+                  {selectedItems.size}개 선택됨 (총 {allMedia.length}개)
+                </span>
+              </div>
+              
+              {selectedItems.size > 0 && (
+                <button
+                  onClick={downloadSelected}
+                  disabled={downloading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-stone-600 text-white text-sm rounded-lg transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  {downloading 
+                    ? `다운로드 중... (${downloadProgress.current}/${downloadProgress.total})`
+                    : `다운로드 (${selectedItems.size}개)`
+                  }
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 갤러리 그리드 */}
       <div className="p-4 space-y-8 max-w-6xl mx-auto">
@@ -549,7 +683,7 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className={`relative ${randomAspect} bg-stone-800 rounded-xl overflow-hidden cursor-pointer group break-inside-avoid mb-2`}
-                      onClick={() => handleMediaClick(media)}
+                      onClick={() => handleMediaClickWithSelection(media)}
                     >
                       {/* 썸네일 */}
                       {/* 썸네일 이미지 - 비디오와 이미지 모두 동일하게 처리 */}
@@ -587,6 +721,30 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                           <span className="truncate">{media.uploadedBy.username}</span>
                         </div>
                       </div>
+
+                      {/* 선택 모드 체크박스 */}
+                      {isSelectionMode && (
+                        <div 
+                          className="absolute top-2 right-2 z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleItemSelection(media.id);
+                          }}
+                        >
+                          <div className="bg-black/50 backdrop-blur-sm rounded-full p-1">
+                            {selectedItems.has(media.id) ? (
+                              <CheckCircle2 className="w-5 h-5 text-blue-400" />
+                            ) : (
+                              <Square className="w-5 h-5 text-white/70" />
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 선택된 아이템 오버레이 */}
+                      {isSelectionMode && selectedItems.has(media.id) && (
+                        <div className="absolute inset-0 bg-blue-500/20 border-2 border-blue-400 rounded-xl" />
+                      )}
                     </motion.div>
                   );
                 })}

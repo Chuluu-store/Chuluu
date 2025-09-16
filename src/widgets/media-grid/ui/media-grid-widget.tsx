@@ -102,6 +102,7 @@ export function MediaGridWidget() {
     setSelectedMedia(null);
   };
 
+
   if (loading) {
     return (
       <div className="glass-card p-8 rounded-3xl">
@@ -115,6 +116,10 @@ export function MediaGridWidget() {
   return (
     <>
       <div className="bg-stone-800/50 backdrop-blur-sm p-4 rounded-2xl">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-white">최근 미디어</h3>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {media.map((item, index) => (
             <motion.div
@@ -156,6 +161,7 @@ export function MediaGridWidget() {
                   </div>
                 </div>
               )}
+
             </motion.div>
           ))}
         </div>
