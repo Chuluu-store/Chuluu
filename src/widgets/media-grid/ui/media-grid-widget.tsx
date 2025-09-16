@@ -39,8 +39,6 @@ export function MediaGridWidget() {
   const fetchMedia = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log('[MediaGrid] fetchMedia called, token:', token ? 'exists' : 'none');
-      
       const response = await fetch('/api/media?limit=10', {
         headers: token
           ? {
@@ -49,15 +47,11 @@ export function MediaGridWidget() {
           : {},
       });
       
-      console.log('[MediaGrid] API response status:', response.status);
       const data = await response.json();
-      console.log('[MediaGrid] API response data:', data);
 
       if (data.media) {
-        console.log('[MediaGrid] Setting media, count:', data.media.length);
         setMedia(data.media);
       } else {
-        console.log('[MediaGrid] No media in response');
         setMedia([]);
       }
       setLoading(false);
@@ -74,14 +68,12 @@ export function MediaGridWidget() {
     // localStorage 변경 감지 (로그인/로그아웃 시)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'token') {
-        console.log('[MediaGrid] Token changed, refetching media');
         fetchMedia();
       }
     };
     
     // 커스텀 이벤트로 로그인 상태 변경 감지
     const handleLoginChange = () => {
-      console.log('[MediaGrid] Login state changed, refetching media');
       fetchMedia();
     };
     

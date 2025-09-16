@@ -3,6 +3,7 @@ import { verifyToken } from '../../../shared/lib/auth';
 import { connectDB } from '../../../shared/lib/database';
 import { Media } from '../../../entities/media/model/media.model';
 import { User } from '../../../entities/user/model/user.model';
+import { Group } from '../../../entities/group/model/group.model';
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,8 +27,21 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
 
-    // 사용자가 로그인한 경우, 본인이 업로드한 미디어만 가져오기
-    const query = userId ? { uploadedBy: userId, status: 'completed' } : { status: 'completed' };
+    let query: any = { status: 'completed' };
+
+    if (userId) {
+      // 사용자가 속한 그룹들 조회
+      const userGroups = await Group.find({ members: userId }).select('_id').lean();
+      const groupIds = userGroups.map(group => group._id);
+      
+      if (groupIds.length > 0) {
+        // 사용자가 속한 그룹의 미디어만 가져오기
+        query.groupId = { $in: groupIds };
+      } else {
+        // 속한 그룹이 없으면 빈 배열 반환
+        query._id = { $in: [] };
+      }
+    }
 
     const media = await Media.find(query)
       .populate('uploadedBy', 'username email')
