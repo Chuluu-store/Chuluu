@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Camera, ImageIcon, X, Download, Share2, User, Calendar, MapPin } from 'lucide-react';
+import { Users, Camera, ImageIcon, X, Download, Share2, User, Calendar } from 'lucide-react';
 
 interface Member {
   id: string;
@@ -311,7 +311,7 @@ export function UserDashboard({ onOpenGroupModal }: UserDashboardProps) {
       >
         <h4 className="text-lg font-medium text-white mb-2">더 많은 기능을 사용해보세요</h4>
         <p className="text-stone-400 text-sm mb-4">
-          '내 그룹' 탭에서 그룹별 사진을 확인하고 새로운 사진을 업로드해보세요
+          &apos;내 그룹&apos; 탭에서 그룹별 사진을 확인하고 새로운 사진을 업로드해보세요
         </p>
         <div className="flex gap-2 justify-center">
           <span className="px-3 py-1 bg-stone-700/50 border border-stone-600/50 rounded-lg text-stone-200 text-xs">
