@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       members: decoded.userId,
     })
       .populate('owner', 'username email')
+      .populate('members', 'username email')
       .sort({ updatedAt: -1 }) // 최근 업데이트된 순서로 정렬
       .lean();
 
@@ -55,6 +56,11 @@ export async function GET(request: NextRequest) {
             username: 'Unknown User',
             email: '',
           },
+      members: group.members.map((member: any) => ({
+        id: member._id,
+        username: member.username,
+        email: member.email,
+      })),
       isOwner: group.owner ? group.owner._id.toString() === decoded.userId : false,
       memberCount: group.members.length,
       mediaCount: group.mediaCount || 0,

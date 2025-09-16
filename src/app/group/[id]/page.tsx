@@ -20,6 +20,11 @@ interface GroupData {
   mediaCount: number;
   createdAt: string;
   isOwner: boolean;
+  members?: Array<{
+    id: string;
+    username: string;
+    email: string;
+  }>;
 }
 
 export default function GroupDetailPage() {
@@ -203,8 +208,8 @@ export default function GroupDetailPage() {
         <Header />
 
         {/* 메인 컨텐츠 */}
-        <div className="flex-1 px-8 py-16 pb-24 overflow-y-auto">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
+        <div className="flex-1 px-8 py-8 pb-24 overflow-y-auto">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             {/* 뒤로가기 버튼 */}
             <motion.button
               initial={{ opacity: 0, y: 20 }}
@@ -216,97 +221,104 @@ export default function GroupDetailPage() {
               <span>뒤로가기</span>
             </motion.button>
 
-            {/* 그룹 헤더 */}
+            {/* 그룹 헤더 - 컴팩트하게 */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-center space-y-4"
+              className="bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-6"
             >
-              <h1 className="text-4xl font-bold text-white">{group.name}</h1>
-              {group.description && <p className="text-stone-300 text-lg leading-relaxed">{group.description}</p>}
+              <div className="text-center mb-4">
+                <h1 className="text-2xl font-bold text-white mb-2">{group.name}</h1>
+                {group.description && <p className="text-stone-400 text-sm">{group.description}</p>}
+              </div>
 
               {/* 통계 정보 */}
-              <div className="flex items-center justify-center gap-6 text-sm text-stone-400">
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-4 h-4" />
-                  <span>{group.memberCount}명</span>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">{group.memberCount}</div>
+                  <div className="text-xs text-stone-400">멤버</div>
                 </div>
-                <span className="text-stone-600">•</span>
-                <div className="flex items-center gap-1.5">
-                  <ImageIcon className="w-4 h-4" />
-                  <span>{group.mediaCount || 0}개 미디어</span>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">{group.mediaCount || 0}</div>
+                  <div className="text-xs text-stone-400">사진</div>
                 </div>
-                <span className="text-stone-600">•</span>
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4" />
-                  <span>{new Date(group.createdAt).toLocaleDateString('ko-KR')}</span>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">{new Date(group.createdAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</div>
+                  <div className="text-xs text-stone-400">생성일</div>
                 </div>
               </div>
+
+              {/* 구성원 정보 (작게) */}
+              {group.members && group.members.length > 0 && (
+                <div className="border-t border-stone-700/50 pt-4">
+                  <h4 className="text-sm font-medium text-white mb-2">구성원</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {group.members.slice(0, 4).map((member) => (
+                      <span key={member.id} className="text-xs bg-stone-700/50 text-stone-300 px-2 py-1 rounded-md">
+                        {member.username || member.email.split('@')[0]}
+                      </span>
+                    ))}
+                    {group.members.length > 4 && (
+                      <span className="text-xs text-stone-500">+{group.members.length - 4}명</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </motion.div>
 
-            {/* 초대 코드 카드 */}
+            {/* 메인 액션 버튼들 - 더 컴팩트하게 */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-8 text-center"
-            >
-              <div className="text-sm text-stone-400 mb-2">초대 코드</div>
-              <div className="text-3xl font-mono font-bold text-white tracking-wider mb-6">{group.inviteCode}</div>
-              <div className="flex gap-3">
-                <button
-                  onClick={copyInviteCode}
-                  className="flex-1 py-3 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors flex items-center justify-center gap-2"
-                >
-                  <Share2 className="w-5 h-5" />
-                  초대하기
-                </button>
-                {group.isOwner && (
-                  <button className="flex-1 py-3 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors flex items-center justify-center gap-2">
-                    <Settings className="w-5 h-5" />
-                    설정
-                  </button>
-                )}
-              </div>
-            </motion.div>
-
-            {/* 메인 액션 버튼 */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="space-y-6"
+              className="grid grid-cols-2 gap-3"
             >
               <button
                 onClick={() => setShowUpload(true)}
-                className="w-full bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-8 hover:bg-stone-800/70 transition-all group"
+                className="bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-4 hover:bg-stone-800/70 transition-all text-center"
               >
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-stone-700/50 rounded-2xl flex items-center justify-center group-hover:bg-stone-600/50 transition-colors">
-                    <Upload className="w-8 h-8 text-stone-300" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="text-xl font-semibold text-white mb-1">사진/동영상 업로드</h3>
-                    <p className="text-stone-400 text-sm">최대 5000개 파일을 원본 화질로 업로드하세요</p>
-                  </div>
-                </div>
+                <Upload className="w-8 h-8 text-stone-300 mx-auto mb-2" />
+                <div className="text-sm font-medium text-white">업로드</div>
+                <div className="text-xs text-stone-400">사진/동영상</div>
               </button>
 
               <button
                 onClick={() => setShowGallery(true)}
-                className="w-full bg-stone-800/50 backdrop-blur-xl border border-stone-700/50 rounded-3xl p-8 hover:bg-stone-800/70 transition-all group"
+                className="bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-4 hover:bg-stone-800/70 transition-all text-center"
               >
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-stone-700/50 rounded-2xl flex items-center justify-center group-hover:bg-stone-600/50 transition-colors">
-                    <ImageIcon className="w-8 h-8 text-stone-300" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="text-xl font-semibold text-white mb-1">갤러리 보기</h3>
-                    <p className="text-stone-400 text-sm">업로드된 모든 사진과 동영상을 확인하세요</p>
-                  </div>
-                </div>
+                <ImageIcon className="w-8 h-8 text-stone-300 mx-auto mb-2" />
+                <div className="text-sm font-medium text-white">갤러리</div>
+                <div className="text-xs text-stone-400">모든 사진 보기</div>
               </button>
+            </motion.div>
+
+            {/* 초대 및 관리 (작게) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-stone-800/30 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-4"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium text-white">초대 코드</h4>
+                <code className="text-sm font-mono text-stone-300 bg-stone-700/50 px-2 py-1 rounded">{group.inviteCode}</code>
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={copyInviteCode}
+                  className="flex-1 py-2 px-3 bg-stone-700 hover:bg-stone-600 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>초대하기</span>
+                </button>
+                {group.isOwner && (
+                  <button className="py-2 px-3 bg-stone-600 hover:bg-stone-500 text-white text-sm rounded-lg transition-colors flex items-center gap-1">
+                    <Settings className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </motion.div>
 
             {/* 최근 업로드 섹션 */}

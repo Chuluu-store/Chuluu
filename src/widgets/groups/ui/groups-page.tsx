@@ -97,30 +97,37 @@ export function GroupsPage() {
 
   return (
     <div className="w-full">
-      <div className="px-8 py-16 pb-24">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
-          <GroupsHero title="내 그룹" subtitle="참여 중인 그룹을 관리하세요" />
+      <div className="px-8 py-8 pb-24">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+          {/* 간단한 헤더 */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+            <h1 className="text-2xl font-bold text-white mb-2">내 그룹</h1>
+            <p className="text-stone-400 text-sm">참여 중인 그룹을 확인하고 관리하세요</p>
+          </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            {groups.length === 0 ? (
+          {groups.length === 0 ? (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <EmptyGroupsState
                 onCreateGroup={() => openGroupModal('create')}
                 onJoinGroup={() => openGroupModal('join')}
               />
-            ) : (
+            </motion.div>
+          ) : (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <GroupsList
                 groups={groups}
                 onCreateGroup={() => openGroupModal('create')}
+                onJoinGroup={() => openGroupModal('join')}
                 onGroupClick={handleGroupClick}
               />
-            )}
+            </motion.div>
+          )}
 
-            <GroupModal
-              isOpen={groupModal.isOpen}
-              onClose={() => setGroupModal({ ...groupModal, isOpen: false })}
-              type={groupModal.type}
-            />
-          </motion.div>
+          <GroupModal
+            isOpen={groupModal.isOpen}
+            onClose={() => setGroupModal({ ...groupModal, isOpen: false })}
+            type={groupModal.type}
+          />
         </motion.div>
       </div>
     </div>

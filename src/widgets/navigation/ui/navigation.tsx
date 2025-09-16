@@ -11,7 +11,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-// 네비게이션 아이템들 - 심플하게 정리
+// 네비게이션 아이템들 - 간단하고 직관적으로
 const navItems: NavItem[] = [
   {
     id: 'home',

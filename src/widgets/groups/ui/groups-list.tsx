@@ -1,36 +1,49 @@
 'use client';
 
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, UserPlus } from 'lucide-react';
 
 import { GroupCard, type Group } from '../../../entities/group';
-import { CreateGroupCard } from '../../../features/create-group';
 
 interface GroupsListProps {
   groups: Group[];
   onCreateGroup: () => void;
+  onJoinGroup: () => void;
   onGroupClick: (group: Group) => void;
 }
 
-export function GroupsList({ groups, onCreateGroup, onGroupClick }: GroupsListProps) {
+export function GroupsList({ groups, onCreateGroup, onJoinGroup, onGroupClick }: GroupsListProps) {
   return (
-    <div className="space-y-12">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-white">내 그룹 ({groups.length})</h2>
+    <div className="space-y-6">
+      {/* 액션 버튼들 */}
+      <div className="flex gap-3">
         <button
           onClick={onCreateGroup}
-          className="text-base text-stone-400 hover:text-white transition-colors flex items-center space-x-2"
+          className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-stone-700 hover:bg-stone-600 text-white rounded-xl transition-colors"
         >
-          <Plus className="w-5 h-5" />
-          <span>새 그룹</span>
+          <Plus className="w-4 h-4" />
+          <span>새 그룹 생성</span>
+        </button>
+        <button
+          onClick={onJoinGroup}
+          className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-stone-600 hover:bg-stone-500 text-white rounded-xl transition-colors"
+        >
+          <UserPlus className="w-4 h-4" />
+          <span>그룹 참가</span>
         </button>
       </div>
 
-      <div className="grid gap-8">
-        <CreateGroupCard onClick={onCreateGroup} />
-        {groups.map((group) => (
-          <GroupCard key={group.id} group={group} onClick={() => onGroupClick(group)} />
-        ))}
+      {/* 그룹 목록 */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-white">내 그룹 ({groups.length})</h3>
+        </div>
+        
+        <div className="space-y-3">
+          {groups.map((group) => (
+            <GroupCard key={group.id} group={group} onClick={() => onGroupClick(group)} />
+          ))}
+        </div>
       </div>
     </div>
   );
