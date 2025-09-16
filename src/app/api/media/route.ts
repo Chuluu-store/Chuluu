@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
+    const isRandomRequest = searchParams.get('random') === 'true';
 
     let query: any = { status: 'completed' };
 
@@ -43,13 +44,39 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const media = await Media.find(query)
-      .populate('uploadedBy', 'username email')
-      .populate('groupId', 'name')
-      .sort({ createdAt: -1, uploadedAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    let media;
+    
+    if (isRandomRequest) {
+      // 더 간단한 방법: 모든 미디어를 가져온 후 JavaScript에서 랜덤 선택
+      const allMedia = await Media.find(query)
+        .populate('uploadedBy', 'username email')
+        .populate('groupId', 'name')
+        .lean();
+      
+      // JavaScript에서 랜덤 선택
+      const shuffled = allMedia.sort(() => 0.5 - Math.random());
+      media = shuffled.slice(0, limit);
+      
+      // 디버그를 위한 로그
+      console.log('🎲 랜덤 미디어 조회 결과:', {
+        totalFound: allMedia.length,
+        randomSelected: media.length,
+        sampleData: media[0] ? {
+          filename: media[0].filename,
+          groupName: media[0].groupId?.name,
+          uploaderName: media[0].uploadedBy?.username
+        } : null
+      });
+    } else {
+      // 일반적인 정렬된 미디어 가져오기
+      media = await Media.find(query)
+        .populate('uploadedBy', 'username email')
+        .populate('groupId', 'name')
+        .sort({ createdAt: -1, uploadedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+    }
 
     const total = await Media.countDocuments(query);
 
@@ -67,7 +94,10 @@ export async function GET(request: NextRequest) {
         height: item.metadata?.height,
         dateTaken: item.metadata?.takenAt,
       },
-      group: item.groupId ? { _id: item.groupId._id || item.groupId, name: item.groupId.name || 'Unknown Group' } : null,
+      group: item.groupId ? { 
+        _id: item.groupId._id || item.groupId, 
+        name: item.groupId.name || 'Unknown Group' 
+      } : null,
       uploadedBy: item.uploadedBy ? {
         _id: item.uploadedBy._id || item.uploadedBy,
         username: item.uploadedBy.username || 'Unknown User',

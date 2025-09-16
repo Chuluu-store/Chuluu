@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Users, Camera, ImageIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, Camera, ImageIcon, X, Download, Share2, User, Calendar, MapPin } from 'lucide-react';
 
 interface Member {
   id: string;
@@ -22,6 +22,30 @@ interface Group {
   members?: Member[];
 }
 
+interface RandomMedia {
+  _id: string;
+  filename: string;
+  originalName: string;
+  path: string;
+  thumbnail: string;
+  isVideo: boolean;
+  uploadedAt: string;
+  metadata: {
+    width?: number;
+    height?: number;
+    dateTaken?: string;
+  };
+  group?: {
+    _id: string;
+    name: string;
+  } | null;
+  uploadedBy?: {
+    _id: string;
+    username: string;
+    email: string;
+  } | null;
+}
+
 interface UserDashboardProps {
   onOpenGroupModal: (type: 'create' | 'join') => void;
 }
@@ -29,9 +53,12 @@ interface UserDashboardProps {
 export function UserDashboard({ onOpenGroupModal }: UserDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalGroups: 0, totalMedia: 0, totalMembers: 0 });
+  const [randomMedia, setRandomMedia] = useState<RandomMedia[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<RandomMedia | null>(null);
 
   useEffect(() => {
     fetchStats();
+    fetchRandomMedia();
   }, []);
 
   const fetchStats = async () => {
@@ -62,6 +89,26 @@ export function UserDashboard({ onOpenGroupModal }: UserDashboardProps) {
       console.error('통계 로드 오류:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRandomMedia = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch('/api/media?random=true&limit=4', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRandomMedia(data.media || []);
+      }
+    } catch (error) {
+      console.error('랜덤 미디어 로드 오류:', error);
     }
   };
 
@@ -195,11 +242,71 @@ export function UserDashboard({ onOpenGroupModal }: UserDashboardProps) {
         </div>
       </motion.div>
 
+      {/* 랜덤 사진 갤러리 */}
+      {randomMedia.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-stone-800/30 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-6"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-medium text-white">추억 돌아보기</h4>
+            <button 
+              onClick={fetchRandomMedia}
+              className="text-sm text-stone-400 hover:text-white transition-colors"
+            >
+              새로고침 →
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {randomMedia.map((media, index) => (
+              <motion.div
+                key={media._id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 * index }}
+                className="aspect-square bg-stone-700 rounded-lg overflow-hidden relative group cursor-pointer"
+                onClick={() => setSelectedMedia(media)}
+              >
+                <img
+                  src={`/api/media/thumbnail/${media._id}?size=200`}
+                  alt={media.originalName}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `/api/media/file/${media._id}`;
+                  }}
+                />
+                
+                {/* 오버레이 정보 */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="absolute bottom-1 left-1 right-1">
+                    <p className="text-white text-xs truncate font-medium">
+                      {media.group?.name || '알 수 없는 그룹'}
+                    </p>
+                    <p className="text-white/70 text-xs truncate">
+                      {media.uploadedBy?.username || '알 수 없음'}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          
+          <p className="text-stone-400 text-xs text-center mt-3">
+            내 그룹들에서 랜덤으로 선택된 추억들 (클릭해서 자세히 보기)
+          </p>
+        </motion.div>
+      )}
+
       {/* 안내 메시지 */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.2 }}
         className="bg-stone-800/30 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-6 text-center"
       >
         <h4 className="text-lg font-medium text-white mb-2">더 많은 기능을 사용해보세요</h4>
@@ -218,6 +325,128 @@ export function UserDashboard({ onOpenGroupModal }: UserDashboardProps) {
           </span>
         </div>
       </motion.div>
+
+      {/* 사진 상세 모달 */}
+      <AnimatePresence>
+        {selectedMedia && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 z-[2000] flex items-center justify-center"
+            onClick={() => setSelectedMedia(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 닫기 버튼 */}
+              <button
+                onClick={() => setSelectedMedia(null)}
+                className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+
+              {/* 이미지 */}
+              <div className="relative max-w-full max-h-full">
+                <img
+                  src={`/api/media/file/${selectedMedia._id}`}
+                  alt={selectedMedia.originalName}
+                  className="max-w-full max-h-[70vh] object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `/api/media/thumbnail/${selectedMedia._id}?size=800`;
+                  }}
+                />
+              </div>
+
+              {/* 메타데이터 패널 */}
+              <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-sm rounded-xl p-4 text-white">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <h3 className="font-semibold text-lg truncate">{selectedMedia.originalName}</h3>
+
+                    {/* 주요 정보 */}
+                    <div className="space-y-1 text-sm">
+                      {selectedMedia.group && (
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Users className="w-4 h-4 text-white/60 flex-shrink-0" />
+                          <span className="text-white/80 truncate">그룹: {selectedMedia.group.name}</span>
+                        </div>
+                      )}
+
+                      {selectedMedia.uploadedBy && (
+                        <div className="flex items-center gap-2 min-w-0">
+                          <User className="w-4 h-4 text-white/60 flex-shrink-0" />
+                          <span className="text-white/80 truncate">업로더: {selectedMedia.uploadedBy.username}</span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Calendar className="w-4 h-4 text-white/60 flex-shrink-0" />
+                        <span className="text-white/80 truncate">
+                          업로드: {new Date(selectedMedia.uploadedAt).toLocaleString('ko-KR')}
+                        </span>
+                      </div>
+
+                      {selectedMedia.metadata?.width && selectedMedia.metadata?.height && (
+                        <div className="text-white/60 text-xs">
+                          해상도: {selectedMedia.metadata.width}×{selectedMedia.metadata.height}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => {
+                        if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+                          navigator.share({
+                            title: selectedMedia.originalName,
+                            url: `${window.location.origin}/api/media/file/${selectedMedia._id}`,
+                          });
+                        } else {
+                          navigator.clipboard.writeText(`${window.location.origin}/api/media/file/${selectedMedia._id}`);
+                        }
+                      }}
+                      className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                      title="공유"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await fetch(`/api/media/file/${selectedMedia._id}`);
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = selectedMedia.originalName;
+                          document.body.appendChild(a);
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                          document.body.removeChild(a);
+                        } catch (error) {
+                          console.error('다운로드 실패:', error);
+                        }
+                      }}
+                      className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                      title="다운로드"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -173,7 +173,6 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [downloading, setDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // 미디어 데이터 로드
@@ -463,34 +462,65 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
     }
   };
 
-  // 선택된 항목들 일괄 다운로드
+  // 선택된 항목들 ZIP 다운로드
   const downloadSelected = async () => {
     if (selectedItems.size === 0) return;
     
-    setDownloading(true);
-    setDownloadProgress({ current: 0, total: selectedItems.size });
-    
-    const selectedMediaItems = allMedia.filter(item => selectedItems.has(item.id));
-    
-    for (let i = 0; i < selectedMediaItems.length; i++) {
-      const item = selectedMediaItems[i];
-      setDownloadProgress({ current: i + 1, total: selectedItems.size });
+    try {
+      setDownloading(true);
+      toast.info('ZIP 파일 생성 중...');
       
-      try {
-        await handleDownloadMedia(item);
-        
-        // 다운로드 간격 조절
-        await new Promise(resolve => setTimeout(resolve, 800));
-      } catch (error) {
-        console.error(`Download failed for ${item.originalName}:`, error);
-        toast.error(`${item.originalName} 다운로드 실패`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('로그인이 필요합니다');
+        return;
       }
+
+      const selectedMediaIds = Array.from(selectedItems);
+      
+      const response = await fetch('/api/media/download-zip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          mediaIds: selectedMediaIds,
+          groupId: groupId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'ZIP 다운로드 실패');
+      }
+
+      // ZIP 파일을 블롭으로 받기
+      const blob = await response.blob();
+      
+      // 다운로드 파일명 생성
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+      const fileName = `chuluu_photos_${timestamp}.zip`;
+      
+      // 다운로드 트리거
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success(`${selectedItems.size}개 파일 ZIP 다운로드 완료`);
+      setIsSelectionMode(false);
+      setSelectedItems(new Set());
+    } catch (error) {
+      console.error('ZIP 다운로드 실패:', error);
+      toast.error(error instanceof Error ? error.message : 'ZIP 다운로드에 실패했습니다');
+    } finally {
+      setDownloading(false);
     }
-    
-    setDownloading(false);
-    setIsSelectionMode(false);
-    setSelectedItems(new Set());
-    toast.success(`${selectedItems.size}개 파일 다운로드 완료`);
   };
 
   // 미디어 클릭 핸들러 수정
@@ -631,8 +661,8 @@ export function PhotoGallery({ groupId, onBack }: PhotoGalleryProps) {
                 >
                   <Download className="w-4 h-4" />
                   {downloading 
-                    ? `다운로드 중... (${downloadProgress.current}/${downloadProgress.total})`
-                    : `다운로드 (${selectedItems.size}개)`
+                    ? 'ZIP 생성 중...'
+                    : `ZIP 다운로드 (${selectedItems.size}개)`
                   }
                 </button>
               )}

@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, Users, Image as ImageIcon, Settings, Share2, Calendar } from 'lucide-react';
 
-import { Header } from "../../../widgets/header";
-import { Navigation } from "../../../widgets/navigation";
-import { BulkUpload } from "../../../features/upload/ui/bulk-upload";
-import { PhotoGallery } from "../../../features/gallery/ui/photo-gallery";
-import { toast } from "../../../shared/lib/toast";
+import { Header } from '../../../widgets/header';
+import { Navigation } from '../../../widgets/navigation';
+import { BulkUpload } from '../../../features/upload/ui/bulk-upload';
+import { PhotoGallery } from '../../../features/gallery/ui/photo-gallery';
+import { toast } from '../../../shared/lib/toast';
 
 interface GroupData {
   id: string;
@@ -125,7 +125,7 @@ export default function GroupDetailPage() {
     if (group?.inviteCode) {
       navigator.clipboard.writeText(group.inviteCode);
       // TODO: 토스트 메시지 표시
-      toast.success("초대 코드가 복사되었습니다!");
+      toast.success('초대 코드가 복사되었습니다!');
     }
   };
 
@@ -244,7 +244,9 @@ export default function GroupDetailPage() {
                   <div className="text-xs text-stone-400">사진</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-bold text-white">{new Date(group.createdAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</div>
+                  <div className="text-lg font-bold text-white">
+                    {new Date(group.createdAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                  </div>
                   <div className="text-xs text-stone-400">생성일</div>
                 </div>
               </div>
@@ -252,7 +254,6 @@ export default function GroupDetailPage() {
               {/* 구성원 정보 (작게) */}
               {group.members && group.members.length > 0 && (
                 <div className="border-t border-stone-700/50 pt-4">
-                  <h4 className="text-sm font-medium text-white mb-2">구성원</h4>
                   <div className="flex flex-wrap gap-1">
                     {group.members.slice(0, 4).map((member) => (
                       <span key={member.id} className="text-xs bg-stone-700/50 text-stone-300 px-2 py-1 rounded-md">
@@ -302,9 +303,11 @@ export default function GroupDetailPage() {
             >
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-medium text-white">초대 코드</h4>
-                <code className="text-sm font-mono text-stone-300 bg-stone-700/50 px-2 py-1 rounded">{group.inviteCode}</code>
+                <code className="text-sm font-mono text-stone-300 bg-stone-700/50 px-2 py-1 rounded">
+                  {group.inviteCode}
+                </code>
               </div>
-              
+
               <div className="flex gap-2">
                 <button
                   onClick={copyInviteCode}
@@ -421,7 +424,6 @@ export default function GroupDetailPage() {
         </div>
         <Navigation onNavigate={handleNavigate} currentPage="groups" />
       </div>
-
     </div>
   );
 }
